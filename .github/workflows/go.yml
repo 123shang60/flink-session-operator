@@ -31,6 +31,8 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags')
     steps:
+      - uses: actions/checkout@v2
+
       - name: Extract Version
         id: version_step
         run: |
