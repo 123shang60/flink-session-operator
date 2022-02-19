@@ -5,6 +5,6 @@ metadata:
 spec:
   # TODO(user): Add fields here
   cpu: "1000m"
-  memory: "1Gi"
+  memory: "3Gi"
   image: "test"
   bootCmd: "222"
