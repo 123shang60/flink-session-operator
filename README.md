@@ -13,6 +13,7 @@ flink session 集群部署
 未完成进度：
 
 - [ ] 真实场景 flink crd 配置构建
+- [ ] webhook 校验能力
 - [ ] deleteExternalResources 函数实现集群卸载
 - [ ] updateExternalResources 函数实现集群清理 + 集群部署
 - [ ] k8s event 事件记录
