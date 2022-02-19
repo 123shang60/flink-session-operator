@@ -47,13 +47,17 @@ type FlinkSessionStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Read bool `json:"read,omitempty"`
+	Ready bool `json:"ready,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
 // FlinkSession is the Schema for the flinksessions API
+// +kubebuilder:printcolumn:name="CPU",type="string",JSONPath=".spec.cpu"
+// +kubebuilder:printcolumn:name="Memory",type="string",JSONPath=".spec.memory"
+// +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 type FlinkSession struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

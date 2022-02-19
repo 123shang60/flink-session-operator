@@ -15,7 +15,20 @@ spec:
     singular: flinksession
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.cpu
+      name: CPU
+      type: string
+    - jsonPath: .spec.memory
+      name: Memory
+      type: string
+    - jsonPath: .status.ready
+      name: Ready
+      type: boolean
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
     schema:
       openAPIV3Schema:
         description: FlinkSession is the Schema for the flinksessions API
@@ -55,7 +68,7 @@ spec:
           status:
             description: FlinkSessionStatus defines the observed state of FlinkSession
             properties:
-              read:
+              ready:
                 type: boolean
             type: object
         type: object
