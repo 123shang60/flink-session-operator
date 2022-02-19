@@ -1,0 +1,6 @@
+domain: shang12360.cn
+layout:
+- go.kubebuilder.io/v3
+projectName: flink-session-operator
+repo: github.com/123shang60/flink-session-operator
+version: "3"
