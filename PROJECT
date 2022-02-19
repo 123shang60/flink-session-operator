@@ -3,4 +3,14 @@ layout:
 - go.kubebuilder.io/v3
 projectName: flink-session-operator
 repo: github.com/123shang60/flink-session-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: shang12360.cn
+  group: flink
+  kind: FlinkSession
+  path: github.com/123shang60/flink-session-operator/api/v1
+  version: v1
 version: "3"

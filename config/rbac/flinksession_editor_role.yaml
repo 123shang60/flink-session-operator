@@ -1,0 +1,24 @@
+# permissions for end users to edit flinksessions.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: flinksession-editor-role
+rules:
+- apiGroups:
+  - flink.shang12360.cn
+  resources:
+  - flinksessions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - flink.shang12360.cn
+  resources:
+  - flinksessions/status
+  verbs:
+  - get
