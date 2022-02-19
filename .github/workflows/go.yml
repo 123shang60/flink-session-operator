@@ -69,7 +69,7 @@ jobs:
       - name: Build and push Docker images
         id: docker_build
         run: |
-          ls -al 
-          pwd
           make docker-build IMG=${{ env.VERSION_TAG }}
+          make docker-build IMG=${{ env.LASTEST_TAG }}
           make docker-push IMG=${{ env.VERSION_TAG }}
+          make docker-push IMG=${{ env.LASTEST_TAG }}
