@@ -59,5 +59,7 @@ jobs:
       - name: Build and push Docker images
         id: docker_build
         run: |
+          ls -al 
+          pwd
           make docker-build IMG=123shang60/flink-session-operator:${{ env.VERSION_TAG }}
           make docker-push IMG=123shang60/flink-session-operator:${{ env.VERSION_TAG }}
