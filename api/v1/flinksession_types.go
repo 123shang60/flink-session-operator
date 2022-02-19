@@ -28,14 +28,26 @@ type FlinkSessionSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of FlinkSession. Edit flinksession_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	//+kubebuilder:validation:MinLength=0
+	// CPU is
+	CPU string `json:"cpu,omitempty"`
+	//+kubebuilder:validation:MinLength=0
+	// Memory is
+	Memory string `json:"memory,omitempty"`
+	//+kubebuilder:validation:MinLength=0
+	// Image is
+	Image string `json:"image,omitempty"`
+	//+kubebuilder:validation:MinLength=0
+	// BootCmd is
+	BootCmd string `json:"bootCmd,omitempty"`
 }
 
 // FlinkSessionStatus defines the observed state of FlinkSession
 type FlinkSessionStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Read bool `json:"read,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -62,3 +74,5 @@ type FlinkSessionList struct {
 func init() {
 	SchemeBuilder.Register(&FlinkSession{}, &FlinkSessionList{})
 }
+
+//+kubebuilder:docs-gen:collapse=Root Object Definitions

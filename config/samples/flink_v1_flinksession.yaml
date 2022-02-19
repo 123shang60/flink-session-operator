@@ -4,3 +4,7 @@ metadata:
   name: flinksession-sample
 spec:
   # TODO(user): Add fields here
+  cpu: "1000m"
+  memory: "1Gi"
+  image: "test"
+  bootCmd: "222"
