@@ -15,3 +15,5 @@
 # vendor/
 go.sum
 bin
+.vscode
+.idea
