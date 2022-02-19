@@ -18,8 +18,10 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -50,6 +52,16 @@ func (r *FlinkSessionReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	_ = log.FromContext(ctx)
 
 	// TODO(user): your logic here
+	var session flinkv1.FlinkSession
+
+	if err := r.Get(ctx, req.NamespacedName, &session); err != nil {
+		klog.Error("get flinksession error:", err)
+		return ctrl.Result{}, nil
+	}
+
+	b, _ := json.Marshal(session)
+
+	klog.Info("session is :", string(b))
 
 	return ctrl.Result{}, nil
 }
