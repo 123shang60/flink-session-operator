@@ -28,19 +28,128 @@ type FlinkSessionSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	//+kubebuilder:validation:MinLength=0
-	// CPU is
-	CPU string `json:"cpu,omitempty"`
-	//+kubebuilder:validation:MinLength=0
-	// Memory is
-	Memory string `json:"memory,omitempty"`
-	//+kubebuilder:validation:MinLength=0
-	// Image is
+	// 填写 flink 运行镜像 ,这个镜像为 flink taskmanager 以及 jobmanager 共用，不支持双镜像，必填
+	//+kubebuilder:validation:MinLength=1
 	Image string `json:"image,omitempty"`
-	//+kubebuilder:validation:MinLength=0
-	// BootCmd is
-	BootCmd string `json:"bootCmd,omitempty"`
+
+	// 填写 flink 镜像拉取 secret
+	ImageSecret *string `json:"imageSecret,omitempty"`
+
+	// SA，填写集群运行的 k8s service account 配置
+	//+kubebuilder:validation:MinLength=1
+	Sa string `json:"sa,omitempty"`
+
+	// flink 运行资源配置
+	Resource FlinkResource `json:"resource,omitempty"`
+
+	// taskmanager 可用槽位，对应 taskmanager.numberOfTaskSlots
+	//+kubebuilder:validation:Minimum=1
+	NumberOfTaskSlots int32 `json:"numberOfTaskSlots,omitempty"`
+
+	// S3 配置
+	S3 FlinkS3 `json:"s3,omitempty"`
+
+	// flink ha 配置
+	HA FlinkHA `json:"ha,omitempty"`
 }
+
+type FlinkResource struct {
+	// jobmanager 资源配置
+	JobManager JobManagerFlinkResource `json:"jobManager,omitempty"`
+
+	// taskmanager 资源配置
+	TaskManager TaskManagerFlinkResource `json:"taskManager,omitempty"`
+}
+
+// JobManagerFlinkResource job manager 资源配置
+type JobManagerFlinkResource struct {
+	// kubernetes.jobmanager.cpu
+	CPU string `json:"cpu,omitempty"`
+	// jobmanager.memory.process.size
+	Memory string `json:"memory,omitempty"`
+	// jobmanager.memory.jvm-metaspace.size
+	JvmMetaspace string `json:"jvm-metaspace,omitempty"`
+	// jobmanager.memory.off-heap.size
+	OffHeap string `json:"off-heap,omitempty"`
+}
+
+// TaskManagerFlinkResource task manager 资源配置
+type TaskManagerFlinkResource struct {
+	// kubernetes.taskmanager.cpu
+	CPU string `json:"cpu,omitempty"`
+	// taskmanager.memory.process.size
+	Memory string `json:"memory,omitempty"`
+	// taskmanager.memory.jvm-metaspace.size
+	JvmMetaspace string `json:"jvm-metaspace,omitempty"`
+
+	Framework TaskManagerFrameworkFlinkResource `json:"framework,omitempty"`
+	Task      TaskManagerTaskFlinkResource      `json:"task,omitempty"`
+	NetWork   TaskManagerNetWorkFlinkResource   `json:"netWork,omitempty"`
+	Managed   TaskManagerManagedFlinkResource   `json:"managed,omitempty"`
+}
+
+type TaskManagerFrameworkFlinkResource struct {
+	// taskmanager.memory.framework.heap.size
+	Heap string `json:"heap,omitempty"`
+	// taskmanager.memory.framework.off-heap.size
+	OffHeap string `json:"off-heap,omitempty"`
+}
+
+type TaskManagerTaskFlinkResource struct {
+	// taskmanager.memory.task.off-heap.size
+	OffHeap string `json:"off-heap,omitempty"`
+}
+
+type TaskManagerNetWorkFlinkResource struct {
+	// taskmanager.memory.network.fraction ， 与 max min 仅其中一个配置生效，默认走max min
+	Fraction string `json:"fraction,omitempty"`
+	// taskmanager.memory.network.min， 与 max min 仅其中一个配置生效，默认走max min
+	Min string `json:"min,omitempty"`
+	// taskmanager.memory.network.max ， 与 max min 仅其中一个配置生效，默认走max min
+	Max string `json:"max,omitempty"`
+}
+
+type TaskManagerManagedFlinkResource struct {
+	// taskmanager.memory.managed.fraction ， 与 max min 仅其中一个配置生效，默认走max min
+	Fraction string `json:"fraction,omitempty"`
+	// taskmanager.memory.managed.min， 与 max min 仅其中一个配置生效，默认走max min
+	Min string `json:"min,omitempty"`
+	// taskmanager.memory.managed.max ， 与 max min 仅其中一个配置生效，默认走max min
+	Max string `json:"max,omitempty"`
+}
+
+type FlinkS3 struct {
+	// s3.endpoint
+	//+kubebuilder:validation:MinLength=1
+	EndPoint string `json:"endPoint,omitempty"`
+	// s3.access-key
+	//+kubebuilder:validation:MinLength=1
+	AccessKey string `json:"accessKey,omitempty"`
+	// s3.secret-key
+	//+kubebuilder:validation:MinLength=1
+	SecretKey string `json:"secretKey,omitempty"`
+	// 部署 bucket
+	//+kubebuilder:validation:MinLength=1
+	Bucket string `json:"bucket"`
+}
+
+type FlinkHA struct {
+	// ha 类型，允许值 zookeeper  kubernetes none
+	Typ FlinkHAType `json:"type,omitempty"`
+
+	// 仅 zookeeper ha 生效，配置 zk 地址
+	Quorum string `json:"quorum,omitempty"`
+	// 仅 zookeeper ha 生效，配置 ha 路径前缀
+	Path string `json:"path,omitempty"`
+}
+
+type FlinkHAType string
+
+const (
+	ZKHA        FlinkHAType = "zookeeper"
+	CONFIGMAPHA FlinkHAType = "kubernetes"
+	NONE        FlinkHAType = "none"
+)
 
 // FlinkSessionStatus defines the observed state of FlinkSession
 type FlinkSessionStatus struct {
@@ -54,8 +163,6 @@ type FlinkSessionStatus struct {
 //+kubebuilder:subresource:status
 
 // FlinkSession is the Schema for the flinksessions API
-// +kubebuilder:printcolumn:name="CPU",type="string",JSONPath=".spec.cpu"
-// +kubebuilder:printcolumn:name="Memory",type="string",JSONPath=".spec.memory"
 // +kubebuilder:printcolumn:name="Ready",type="boolean",JSONPath=".status.ready"
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 type FlinkSession struct {

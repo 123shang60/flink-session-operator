@@ -87,6 +87,11 @@ func (r *FlinkSessionReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		thisHash, _ := structhash.Hash(changeHash, 1)
 		if val != thisHash {
 			klog.Info("spec change!")
+			session.ObjectMeta.Annotations[HashAnnotations] = thisHash
+			if err := r.Update(ctx, &session); err != nil {
+				klog.Error("Update HashAnnotations error:: ", err)
+				return ctrl.Result{}, err
+			}
 		} else {
 			klog.Info("spec nochange!")
 			return ctrl.Result{}, nil
