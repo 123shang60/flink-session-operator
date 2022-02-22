@@ -3,6 +3,7 @@ module github.com/123shang60/flink-session-operator
 go 1.17
 
 require (
+	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
 	k8s.io/api v0.23.0
@@ -22,7 +23,6 @@ require (
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
-	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/evanphx/json-patch v4.12.0+incompatible // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
