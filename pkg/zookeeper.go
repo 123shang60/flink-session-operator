@@ -23,8 +23,21 @@ func AutoConnZk(quorum string) (*ZooKeeper, error) {
 	}, nil
 }
 
+// TODO: 递归删除
 func (zoo *ZooKeeper) AutoDelete(path string) error {
 	klog.Infof("准备删除zk 路径: %s", path)
+	//children, status, err := zoo.Children(path)
+	//if err != nil {
+	//	klog.Error("zk 子路径检查失败！,停止zk删除流程", err)
+	//}
+	//
+	//for _, child := range children {
+	//	err = zoo.Delete(child, status.Version)
+	//	if err != nil {
+	//		klog.Error(err)
+	//	}
+	//}
+
 	_, stat, err := zoo.Get(path)
 	if err != nil {
 		klog.Error("zk 路径检查失败！,停止zk删除流程", err)
