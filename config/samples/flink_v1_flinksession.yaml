@@ -5,7 +5,7 @@ metadata:
   namespace: default
 spec:
   # TODO(user): Add fields here
-  image: "flink:1.14.3-scala_2.12-java11"
+  image: "123shang60/flink:1.14.3-scala_2.12-java11"
   sa: flink
   resource:
     jobManager:
