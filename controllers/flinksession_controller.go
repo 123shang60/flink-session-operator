@@ -166,8 +166,25 @@ func (r *FlinkSessionReconciler) updateExternalResources(session *flinkv1.FlinkS
 	//
 	// Ensure that delete implementation is idempotent and safe to invoke
 	// multiple times for same object.
+
 	klog.Info("do somethings update!:", session.Spec.Image)
 	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession Update", "%s", "update")
+
+	err := r.initExternalResources(session)
+	if err != nil {
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "External Resources Error: %s", err.Error())
+		return err
+	}
+
+	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession Update", "%s", "External Resources successful!")
+
+	err = r.commitBootJob(session)
+	if err != nil {
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "Commit Job Error: %s", err.Error())
+		return err
+	}
+
+	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession Update", "%s", "Commit Job successful!")
 	return nil
 }
 

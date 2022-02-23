@@ -15,7 +15,7 @@ spec:
       off-heap: "128M"
     taskManager:
       cpu: "1"
-      memory: "1G"
+      memory: "3G"
       jvm-metaspace: "128M"
       framework:
         heap: ""
