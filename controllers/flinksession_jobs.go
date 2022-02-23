@@ -56,7 +56,7 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 			},
 		}
 	}
-	
+
 	err = controllerutil.SetControllerReference(session, bootJob, r.Scheme)
 	if err != nil {
 		klog.Error("设置 reference 失败!")

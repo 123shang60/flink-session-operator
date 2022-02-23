@@ -22,8 +22,17 @@ func TestNormalDelete(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, TestPath, s)
 
+	_, err = conn.Create(TestPath+"/test", data, 0, acls)
+	assert.Nil(t, err)
+
+	_, err = conn.Create(TestPath+"/test/test", data, 0, acls)
+	assert.Nil(t, err)
+
 	err = conn.AutoDelete(TestPath)
 	assert.Nil(t, err)
+
+	_, _, err = conn.Get(TestPath)
+	assert.NotNil(t, err)
 }
 
 func TestErrorDelete(t *testing.T) {
@@ -32,5 +41,8 @@ func TestErrorDelete(t *testing.T) {
 	assert.Nil(t, err)
 
 	err = conn.AutoDelete(TestPath)
+	assert.NotNil(t, err)
+
+	_, _, err = conn.Get(TestPath)
 	assert.NotNil(t, err)
 }
