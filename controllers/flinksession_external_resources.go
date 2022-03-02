@@ -7,7 +7,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func (r *FlinkSessionReconciler) initExternalResources(f *flinkv1.FlinkSession) error {
+func (r *FlinkSessionReconciler) cleanExternalResources(f *flinkv1.FlinkSession) error {
 	// 清理 zk
 	if f.Spec.HA.Typ == flinkv1.ZKHA {
 		klog.Info("zk ha 模式，开始清理！")
