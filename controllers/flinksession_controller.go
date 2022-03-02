@@ -20,8 +20,10 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/cnf/structhash"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,7 +36,8 @@ import (
 // FlinkSessionReconciler reconciles a FlinkSession object
 type FlinkSessionReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 type changeReconciler struct {
@@ -45,6 +48,9 @@ type changeReconciler struct {
 //+kubebuilder:rbac:groups=flink.shang12360.cn,resources=flinksessions,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=flink.shang12360.cn,resources=flinksessions/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=flink.shang12360.cn,resources=flinksessions/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete;deletecollection
+//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete;deletecollection
+//+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete;deletecollection
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -81,6 +87,11 @@ func (r *FlinkSessionReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		thisHash, _ := structhash.Hash(changeHash, 1)
 		if val != thisHash {
 			klog.Info("spec change!")
+			session.ObjectMeta.Annotations[HashAnnotations] = thisHash
+			if err := r.Update(ctx, &session); err != nil {
+				klog.Error("Update HashAnnotations error:: ", err)
+				return ctrl.Result{}, err
+			}
 		} else {
 			klog.Info("spec nochange!")
 			return ctrl.Result{}, nil
@@ -104,8 +115,17 @@ func (r *FlinkSessionReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			}
 		}
 
+		session.Status.Ready = false
+		if err := r.Status().Update(ctx, &session); err != nil {
+			klog.Error("Update Status !!! ", err)
+		}
 		if err := r.updateExternalResources(&session); err != nil {
 			return ctrl.Result{}, err
+		}
+
+		session.Status.Ready = true
+		if err := r.Status().Update(ctx, &session); err != nil {
+			klog.Error("Update Status !!! ", err)
 		}
 	} else {
 		// The object is being deleted
@@ -146,7 +166,26 @@ func (r *FlinkSessionReconciler) updateExternalResources(session *flinkv1.FlinkS
 	//
 	// Ensure that delete implementation is idempotent and safe to invoke
 	// multiple times for same object.
+
 	klog.Info("do somethings update!:", session.Spec.Image)
+	r.deleteDeploy(session)
+	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession Update", "%s", "update")
+
+	err := r.cleanExternalResources(session)
+	if err != nil {
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "External Resources Error: %s", err.Error())
+		return err
+	}
+
+	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession Update", "%s", "External Resources successful!")
+
+	err = r.commitBootJob(session)
+	if err != nil {
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "Commit Job Error: %s", err.Error())
+		return err
+	}
+
+	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession Update", "%s", "Commit Job successful!")
 	return nil
 }
 
@@ -158,5 +197,15 @@ func (r *FlinkSessionReconciler) deleteExternalResources(session *flinkv1.FlinkS
 	// Ensure that delete implementation is idempotent and safe to invoke
 	// multiple times for same object.
 	klog.Info("do somethings delete!:", session.Spec.Image)
+	if err := r.deleteDeploy(session); err != nil {
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession delete", "Delete session Error: %s", err.Error())
+	}
+
+	err := r.cleanExternalResources(session)
+	if err != nil {
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession delete", "External Resources Error: %s", err.Error())
+		return err
+	}
+	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession delete", "%s", "ok")
 	return nil
 }

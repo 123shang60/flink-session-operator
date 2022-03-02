@@ -2,9 +2,41 @@ apiVersion: flink.shang12360.cn/v1
 kind: FlinkSession
 metadata:
   name: flinksession-sample
+  namespace: flink-test
 spec:
   # TODO(user): Add fields here
-  cpu: "1000m"
-  memory: "3Gi"
-  image: "test"
-  bootCmd: "222"
+  image: "123shang60/flink:1.14.3-scala_2.12-java11"
+  sa: flink
+  resource:
+    jobManager:
+      cpu: "1"
+      memory: "1G"
+      jvm-metaspace: "128M"
+      off-heap: "128M"
+    taskManager:
+      cpu: "1"
+      memory: "3G"
+      jvm-metaspace: "128M"
+      framework:
+        heap: ""
+        off-heap: ""
+      task: 
+        off-heap: ""
+      netWork:
+        fraction: "0.1"
+        min: "512M"
+        max: "1G"
+      managed:
+        fraction: "0.1"
+        min: "512M"
+        max: "1G"
+  numberOfTaskSlots: 3
+  s3:
+    endPoint: localhost:9100
+    accessKey: test
+    secretKey: "123456"
+    bucket: test
+  ha:  
+    type: zookeeper
+    quorum: "127.0.0.1:2181"
+    path: "/flink/test"

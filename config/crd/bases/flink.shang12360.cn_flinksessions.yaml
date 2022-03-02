@@ -16,12 +16,6 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .spec.cpu
-      name: CPU
-      type: string
-    - jsonPath: .spec.memory
-      name: Memory
-      type: string
     - jsonPath: .status.ready
       name: Ready
       type: boolean
@@ -48,21 +42,135 @@ spec:
           spec:
             description: FlinkSessionSpec defines the desired state of FlinkSession
             properties:
-              bootCmd:
-                description: BootCmd is
-                minLength: 0
-                type: string
-              cpu:
-                description: CPU is
-                minLength: 0
-                type: string
+              ha:
+                description: flink ha 配置
+                properties:
+                  path:
+                    description: 仅 zookeeper ha 生效，配置 ha 路径前缀
+                    type: string
+                  quorum:
+                    description: 仅 zookeeper ha 生效，配置 zk 地址
+                    type: string
+                  type:
+                    description: ha 类型，允许值 zookeeper  kubernetes none
+                    type: string
+                type: object
               image:
-                description: Image is
-                minLength: 0
+                description: 填写 flink 运行镜像 ,这个镜像为 flink taskmanager 以及 jobmanager
+                  共用，不支持双镜像，必填
+                minLength: 1
                 type: string
-              memory:
-                description: Memory is
-                minLength: 0
+              imageSecret:
+                description: 填写 flink 镜像拉取 secret
+                type: string
+              numberOfTaskSlots:
+                description: taskmanager 可用槽位，对应 taskmanager.numberOfTaskSlots
+                format: int32
+                minimum: 1
+                type: integer
+              resource:
+                description: flink 运行资源配置
+                properties:
+                  jobManager:
+                    description: jobmanager 资源配置
+                    properties:
+                      cpu:
+                        description: kubernetes.jobmanager.cpu
+                        type: string
+                      jvm-metaspace:
+                        description: jobmanager.memory.jvm-metaspace.size
+                        type: string
+                      memory:
+                        description: jobmanager.memory.process.size
+                        type: string
+                      off-heap:
+                        description: jobmanager.memory.off-heap.size
+                        type: string
+                    type: object
+                  taskManager:
+                    description: taskmanager 资源配置
+                    properties:
+                      cpu:
+                        description: kubernetes.taskmanager.cpu
+                        type: string
+                      framework:
+                        properties:
+                          heap:
+                            description: taskmanager.memory.framework.heap.size
+                            type: string
+                          off-heap:
+                            description: taskmanager.memory.framework.off-heap.size
+                            type: string
+                        type: object
+                      jvm-metaspace:
+                        description: taskmanager.memory.jvm-metaspace.size
+                        type: string
+                      managed:
+                        properties:
+                          fraction:
+                            description: taskmanager.memory.managed.fraction ， 与 max
+                              min 仅其中一个配置生效，默认走max min
+                            type: string
+                          max:
+                            description: taskmanager.memory.managed.max ， 与 max min
+                              仅其中一个配置生效，默认走max min
+                            type: string
+                          min:
+                            description: taskmanager.memory.managed.min， 与 max min
+                              仅其中一个配置生效，默认走max min
+                            type: string
+                        type: object
+                      memory:
+                        description: taskmanager.memory.process.size
+                        type: string
+                      netWork:
+                        properties:
+                          fraction:
+                            description: taskmanager.memory.network.fraction ， 与 max
+                              min 仅其中一个配置生效，默认走max min
+                            type: string
+                          max:
+                            description: taskmanager.memory.network.max ， 与 max min
+                              仅其中一个配置生效，默认走max min
+                            type: string
+                          min:
+                            description: taskmanager.memory.network.min， 与 max min
+                              仅其中一个配置生效，默认走max min
+                            type: string
+                        type: object
+                      task:
+                        properties:
+                          off-heap:
+                            description: taskmanager.memory.task.off-heap.size
+                            type: string
+                        type: object
+                    type: object
+                type: object
+              s3:
+                description: S3 配置
+                properties:
+                  accessKey:
+                    description: s3.access-key
+                    minLength: 1
+                    type: string
+                  bucket:
+                    description: 部署 bucket
+                    minLength: 1
+                    type: string
+                  endPoint:
+                    description: s3.endpoint
+                    minLength: 1
+                    type: string
+                  secretKey:
+                    description: s3.secret-key
+                    minLength: 1
+                    type: string
+                required:
+                - bucket
+                type: object
+              sa:
+                description: SA，填写集群运行的 k8s service account 配置
+                minLength: 1
                 type: string
             type: object
           status:
