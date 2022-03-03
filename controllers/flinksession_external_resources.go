@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
 	"github.com/123shang60/flink-session-operator/pkg"
 	"k8s.io/klog/v2"
@@ -26,6 +27,14 @@ func (r *FlinkSessionReconciler) cleanExternalResources(f *flinkv1.FlinkSession)
 			}
 		} else {
 			// TODO: 默认路径清理
+			// 默认路径为 /flink/${high-availability.cluster-id}
+			klog.Info("清理默认路径！：/flink/" + f.Name)
+			err := zkCli.AutoDelete(fmt.Sprintf("/flink/%s", f.Name))
+			if err != nil {
+				klog.Error("zk 删除失败，忽略错误", err)
+			} else {
+				klog.Info("zk 默认路径 清理完成！")
+			}
 		}
 	}
 	// 初始化 minio
