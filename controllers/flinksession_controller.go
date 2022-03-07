@@ -174,6 +174,11 @@ func (r *FlinkSessionReconciler) updateExternalResources(session *flinkv1.FlinkS
 
 	klog.Info("do somethings update!:", session.Spec.Image)
 	r.deleteDeploy(session)
+	if err := r.waitDeletePod(session); err != nil {
+		klog.Error("等待 pods 清空失败！")
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "%s: %s", "清理过程中，等待 pods 消失失败！", err.Error())
+		return err
+	}
 	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession Update", "%s", "update")
 
 	err := r.cleanExternalResources(session)
@@ -204,6 +209,12 @@ func (r *FlinkSessionReconciler) deleteExternalResources(session *flinkv1.FlinkS
 	klog.Info("do somethings delete!:", session.Spec.Image)
 	if err := r.deleteDeploy(session); err != nil {
 		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession delete", "Delete session Error: %s", err.Error())
+	}
+
+	if err := r.waitDeletePod(session); err != nil {
+		klog.Error("等待 pods 清空失败！")
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession delete", "%s: %s", "清理过程中，等待 pods 消失失败！", err.Error())
+		return err
 	}
 
 	err := r.cleanExternalResources(session)

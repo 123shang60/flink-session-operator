@@ -15,7 +15,7 @@ func (r *FlinkSessionReconciler) updateNodePort(session *flinkv1.FlinkSession) e
 	if err := r.List(context.Background(), &svc, client.MatchingLabels{
 		"type": FlinkNativeType,
 		"app":  session.GetName(),
-	}); err != nil {
+	}, client.InNamespace(session.GetNamespace())); err != nil {
 		klog.Error("svc 查询失败！", err)
 		return err
 	}

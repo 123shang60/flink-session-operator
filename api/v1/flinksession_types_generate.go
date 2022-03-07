@@ -83,6 +83,7 @@ func (f *FlinkSession) GenerateCommand() (string, error) {
 	// 其他的必配项目
 	command.FieldConfig("env.java.opts", `"-XX:+UseG1GC"`)
 	command.FieldConfig("kubernetes.rest-service.exposed.type", "NodePort")
+	command.FieldConfig("web.submit.enable", "false")
 
 	return command.Build(), nil
 }
