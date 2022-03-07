@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
 	"github.com/cnf/structhash"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,8 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // FlinkSessionReconciler reconciles a FlinkSession object
@@ -49,6 +49,8 @@ type changeReconciler struct {
 //+kubebuilder:rbac:groups=flink.shang12360.cn,resources=flinksessions/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=flink.shang12360.cn,resources=flinksessions/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;update;patch;delete;deletecollection
+//+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;create;update;patch;delete;deletecollection
+//+kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;update;patch;delete;deletecollection
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete;deletecollection
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete;deletecollection
 
@@ -94,6 +96,7 @@ func (r *FlinkSessionReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			}
 		} else {
 			klog.Info("spec nochange!")
+			r.updateSelfStatus(&session)
 			return ctrl.Result{}, nil
 		}
 	}
@@ -127,6 +130,7 @@ func (r *FlinkSessionReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err := r.Status().Update(ctx, &session); err != nil {
 			klog.Error("Update Status !!! ", err)
 		}
+		r.updateSelfStatus(&session)
 	} else {
 		// The object is being deleted
 		if controllerutil.ContainsFinalizer(&session, FlinkSessionFinalizerName) {
@@ -156,6 +160,7 @@ func (r *FlinkSessionReconciler) Reconcile(ctx context.Context, req ctrl.Request
 func (r *FlinkSessionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&flinkv1.FlinkSession{}).
+		Watches(&source.Kind{Type: &corev1.Service{}}, &FlinkSessionServiceHandler{}).
 		Complete(r)
 }
 
@@ -207,5 +212,11 @@ func (r *FlinkSessionReconciler) deleteExternalResources(session *flinkv1.FlinkS
 		return err
 	}
 	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession delete", "%s", "ok")
+	return nil
+}
+
+func (r *FlinkSessionReconciler) updateSelfStatus(session *flinkv1.FlinkSession) error {
+	// 忽略错误
+	r.updateNodePort(session)
 	return nil
 }
