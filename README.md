@@ -9,15 +9,18 @@ flink session 集群部署
 - [x] webhook 适配
 - [x] finalizer 适配
 - [x] 解决 operator 自身 update 对象时重复调用逻辑问题
+- [x] 真实场景 flink crd 配置构建
+- [x] deleteExternalResources 函数实现集群卸载
+- [x] updateExternalResources 函数实现集群清理 + 集群部署
+- [x] k8s event 事件记录
+- [x] status 展示
 
 未完成进度：
 
-- [x] 真实场景 flink crd 配置构建
 - [ ] webhook 校验能力
-- [ ] deleteExternalResources 函数实现集群卸载
-- [ ] updateExternalResources 函数实现集群清理 + 集群部署
-- [x] k8s event 事件记录
-- [x] status 展示
+- [ ] 自定义 config 配置文件能力
+- [ ] 支持基于 pod-template 的多种均衡节点调度策略
+- [ ] 支持可选更新时删除 ha 及 minio 状态后端信息
 
 需要支持的扩展能力：
 
