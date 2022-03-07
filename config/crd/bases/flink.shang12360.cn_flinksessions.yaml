@@ -19,6 +19,9 @@ spec:
     - jsonPath: .status.ready
       name: Ready
       type: boolean
+    - jsonPath: .status.port
+      name: Port
+      type: integer
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
@@ -176,6 +179,9 @@ spec:
           status:
             description: FlinkSessionStatus defines the observed state of FlinkSession
             properties:
+              port:
+                format: int32
+                type: integer
               ready:
                 type: boolean
             type: object
