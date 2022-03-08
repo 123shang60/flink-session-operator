@@ -19,6 +19,7 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 	}
 
 	jobName := fmt.Sprintf("boot-%s-%d", session.Name, time.Now().Unix())
+	defaultMode := DefaultMode
 
 	bootJob := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -44,6 +45,20 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 								"-c",
 								command,
 							},
+							VolumeMounts: make([]apiv1.VolumeMount, 0),
+						},
+					},
+					Volumes: []apiv1.Volume{
+						{
+							Name: "config",
+							VolumeSource: apiv1.VolumeSource{
+								ConfigMap: &apiv1.ConfigMapVolumeSource{
+									LocalObjectReference: apiv1.LocalObjectReference{
+										Name: jobName,
+									},
+									DefaultMode: &defaultMode,
+								},
+							},
 						},
 					},
 				},
@@ -67,7 +82,41 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 		}
 	}
 
-	// TODO: 配置并挂载configmap
+	if len(session.Spec.Config.FlinkConf) != 0 {
+		bootConfigMap.Data[`flink-conf.yaml`] = session.Spec.Config.FlinkConf
+		bootJob.Spec.Template.Spec.Containers[0].VolumeMounts = append(
+			bootJob.Spec.Template.Spec.Containers[0].VolumeMounts,
+			apiv1.VolumeMount{
+				Name:      "config",
+				MountPath: "/opt/flink/conf/flink-conf.yaml",
+				SubPath:   "flink-conf.yaml",
+			},
+		)
+	}
+
+	if len(session.Spec.Config.Log4j) != 0 {
+		bootConfigMap.Data[`log4j-console.properties`] = session.Spec.Config.Log4j
+		bootJob.Spec.Template.Spec.Containers[0].VolumeMounts = append(
+			bootJob.Spec.Template.Spec.Containers[0].VolumeMounts,
+			apiv1.VolumeMount{
+				Name:      "config",
+				MountPath: "/opt/flink/conf/log4j-console.properties",
+				SubPath:   "log4j-console.properties",
+			},
+		)
+	}
+
+	if len(session.Spec.Config.LogBack) != 0 {
+		bootConfigMap.Data[`logback-console.xml`] = session.Spec.Config.LogBack
+		bootJob.Spec.Template.Spec.Containers[0].VolumeMounts = append(
+			bootJob.Spec.Template.Spec.Containers[0].VolumeMounts,
+			apiv1.VolumeMount{
+				Name:      "config",
+				MountPath: "/opt/flink/conf/logback-console.xml",
+				SubPath:   "logback-console.xml",
+			},
+		)
+	}
 
 	err = controllerutil.SetControllerReference(session, bootJob, r.Scheme)
 	if err != nil {

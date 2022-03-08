@@ -177,12 +177,12 @@ type FlinkConfig struct {
 	// 对应 $FLINK_HOME/conf/flink-conf.yaml ，不写使用镜像内预制配置文件
 	//+nullable
 	FlinkConf string `json:"flink-conf.yaml,omitempty"`
-	// 对应 $FLINK_HOME/conf/log4j.properties ，不写使用镜像内预制配置文件
+	// 对应 $FLINK_HOME/conf/log4j-console.properties ，不写使用镜像内预制配置文件
 	//+nullable
-	Log4j string `json:"log4j.properties,omitempty"`
-	// 对应 $FLINK_HOME/conf/logback.xml ，不写使用镜像内预制配置文件
+	Log4j string `json:"log4j-console.properties,omitempty"`
+	// 对应 $FLINK_HOME/conf/logback-console.xml ，不写使用镜像内预制配置文件
 	//+nullable
-	LogBack string `json:"logback.xml,omitempty"`
+	LogBack string `json:"logback-console.xml,omitempty"`
 }
 
 // FlinkSessionStatus defines the observed state of FlinkSession

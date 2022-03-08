@@ -22,3 +22,7 @@ const (
 	FlinkNativeType           string = `flink-native-kubernetes`
 	FlinkRestPortName         string = `rest`
 )
+
+const (
+	DefaultMode int32 = 0755
+)

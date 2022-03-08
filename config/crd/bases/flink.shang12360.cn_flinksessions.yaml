@@ -62,12 +62,12 @@ spec:
                     description: 对应 $FLINK_HOME/conf/flink-conf.yaml ，不写使用镜像内预制配置文件
                     nullable: true
                     type: string
-                  log4j.properties:
-                    description: 对应 $FLINK_HOME/conf/log4j.properties ，不写使用镜像内预制配置文件
+                  log4j-console.properties:
+                    description: 对应 $FLINK_HOME/conf/log4j-console.properties ，不写使用镜像内预制配置文件
                     nullable: true
                     type: string
-                  logback.xml:
-                    description: 对应 $FLINK_HOME/conf/logback.xml ，不写使用镜像内预制配置文件
+                  logback-console.xml:
+                    description: 对应 $FLINK_HOME/conf/logback-console.xml ，不写使用镜像内预制配置文件
                     nullable: true
                     type: string
                 type: object
