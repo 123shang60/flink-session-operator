@@ -132,6 +132,11 @@ func (r *FlinkSessionReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 		r.updateSelfStatus(&session)
 	} else {
+		session.Status.Ready = false
+		if err := r.Status().Update(ctx, &session); err != nil {
+			klog.Error("Update Status !!! ", err)
+		}
+
 		// The object is being deleted
 		if controllerutil.ContainsFinalizer(&session, FlinkSessionFinalizerName) {
 			// our finalizer is present, so lets handle any external dependency

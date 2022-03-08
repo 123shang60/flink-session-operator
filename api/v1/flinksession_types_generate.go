@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/123shang60/flink-session-operator/pkg"
 	"strconv"
+	"strings"
 )
 
 func (f *FlinkSession) GenerateCommand() (string, error) {
@@ -80,10 +81,34 @@ func (f *FlinkSession) GenerateCommand() (string, error) {
 		command.FieldConfig("high-availability.storageDir", fmt.Sprintf("s3://%s/%s/flink/ha/metadata", f.Spec.S3.Bucket, f.Name))
 	}
 
+	// nodeSelector
+	if f.Spec.NodeSelector != nil && len(f.Spec.NodeSelector) != 0 {
+		selector := buildNodeSelector(f.Spec.NodeSelector)
+		command.FieldConfig("kubernetes.taskmanager.node-selector", selector)
+		command.FieldConfig("kubernetes.jobmanager.node-selector", selector)
+	}
+
 	// 其他的必配项目
 	command.FieldConfig("env.java.opts", `"-XX:+UseG1GC"`)
 	command.FieldConfig("kubernetes.rest-service.exposed.type", "NodePort")
-	command.FieldConfig("web.submit.enable", "false")
+	//command.FieldConfig("web.submit.enable", "false")
 
 	return command.Build(), nil
+}
+
+func buildNodeSelector(selector map[string]string) string {
+	var builder strings.Builder
+
+	for k, v := range selector {
+		builder.WriteString(k)
+		builder.WriteString(":")
+		builder.WriteString(v)
+		builder.WriteString(",")
+	}
+	str := builder.String()
+	if len(str) > 0 {
+		return str[:len(str)-1]
+	} else {
+		return str
+	}
 }

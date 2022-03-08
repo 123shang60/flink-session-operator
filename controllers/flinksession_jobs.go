@@ -18,9 +18,11 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 		return err
 	}
 
+	jobName := fmt.Sprintf("boot-%s-%d", session.Name, time.Now().Unix())
+
 	bootJob := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("boot-%s-%d", session.Name, time.Now().Unix()),
+			Name:      jobName,
 			Namespace: session.Namespace,
 		},
 		Spec: batchv1.JobSpec{
@@ -49,6 +51,14 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 		},
 	}
 
+	bootConfigMap := &apiv1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      jobName,
+			Namespace: session.Namespace,
+		},
+		Data: make(map[string]string),
+	}
+
 	if session.Spec.ImageSecret != nil && len(*session.Spec.ImageSecret) != 0 {
 		bootJob.Spec.Template.Spec.ImagePullSecrets = []apiv1.LocalObjectReference{
 			{
@@ -57,9 +67,22 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 		}
 	}
 
+	// TODO: 配置并挂载configmap
+
 	err = controllerutil.SetControllerReference(session, bootJob, r.Scheme)
 	if err != nil {
-		klog.Error("设置 reference 失败!")
+		klog.Error("job 设置 reference 失败!", err)
+	}
+
+	err = controllerutil.SetControllerReference(session, bootConfigMap, r.Scheme)
+	if err != nil {
+		klog.Error("configmap 设置 reference 失败!", err)
+	}
+
+	err = r.Create(context.Background(), bootConfigMap)
+	if err != nil {
+		klog.Info("创建 configmap 失败!", err)
+		return err
 	}
 
 	err = r.Create(context.Background(), bootJob)

@@ -20,6 +20,7 @@ flink session 集群部署
 
 未完成进度：
 
+- [ ] k8s 原生 ha 支持
 - [ ] webhook 校验能力
 - [ ] 自定义 config 配置文件能力
 - [ ] 支持基于 pod-template 的多种均衡节点调度策略
