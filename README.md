@@ -1,6 +1,9 @@
 # flink-session-operator
 flink session 集群部署
 
+[![Go](https://github.com/123shang60/flink-session-operator/actions/workflows/go.yml/badge.svg?branch=main)](https://github.com/123shang60/flink-session-operator/actions/workflows/go.yml)
+[![CodeQL](https://github.com/123shang60/flink-session-operator/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/123shang60/flink-session-operator/actions/workflows/codeql-analysis.yml)
+
 基于 kubebuilder 构建的、方便管理与创建 flink session 集群的 operator
 
 当前实现进度：
