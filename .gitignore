@@ -17,3 +17,4 @@ go.sum
 bin
 .vscode
 .idea
+**/.DS_Store
