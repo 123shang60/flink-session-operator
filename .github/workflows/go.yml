@@ -75,6 +75,5 @@ jobs:
       - name: Build and push Docker images
         id: docker_build
         run: |
-          make init-container
           make container IMG=${{ env.VERSION_TAG }}
           make container IMG=${{ env.LASTEST_TAG }}
