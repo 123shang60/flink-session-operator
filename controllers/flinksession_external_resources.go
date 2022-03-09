@@ -26,7 +26,6 @@ func (r *FlinkSessionReconciler) cleanExternalResources(f *flinkv1.FlinkSession)
 				klog.Info("zk 指定路径 清理完成！")
 			}
 		} else {
-			// TODO: 默认路径清理
 			// 默认路径为 /flink/${high-availability.cluster-id}
 			klog.Info("清理默认路径！：/flink/" + f.Name)
 			err := zkCli.AutoDelete(fmt.Sprintf("/flink/%s", f.Name))

@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-zookeeper/zk v1.0.2
 	github.com/minio/minio-go/v7 v7.0.23
 	github.com/onsi/ginkgo v1.16.5

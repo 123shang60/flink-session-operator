@@ -87,11 +87,15 @@ func (f *FlinkSession) GenerateCommand() (string, error) {
 		command.FieldConfig("kubernetes.taskmanager.node-selector", selector)
 		command.FieldConfig("kubernetes.jobmanager.node-selector", selector)
 	}
+	if f.Spec.BalancedSchedule != NoneScheduling {
+		command.FieldConfig("kubernetes.pod-template-file", "/opt/flink/template/pod-template.yaml")
+		command.FieldConfig("kubernetes.pod-template-file.jobmanager", "/opt/flink/template/pod-template.yaml")
+		command.FieldConfig("kubernetes.pod-template-file.taskmanager", "/opt/flink/template/pod-template.yaml")
+	}
 
 	// 其他的必配项目
 	command.FieldConfig("env.java.opts", `"-XX:+UseG1GC"`)
 	command.FieldConfig("kubernetes.rest-service.exposed.type", "NodePort")
-	//command.FieldConfig("web.submit.enable", "false")
 
 	return command.Build(), nil
 }
