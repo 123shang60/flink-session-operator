@@ -21,6 +21,7 @@ const (
 	HashAnnotations           string = `flink.shang12360.cn/hash`
 	FlinkNativeType           string = `flink-native-kubernetes`
 	FlinkRestPortName         string = `rest`
+	FlinkHAConfigType         string = `high-availability`
 )
 
 const (
