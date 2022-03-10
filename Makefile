@@ -81,9 +81,6 @@ docker-push: ## Push docker image with the manager.
 container: ## Build and Push image with all platform with the manager
 	docker buildx build -f Dockerfile -t ${IMG} --platform=linux/amd64,linux/arm,linux/arm64,linux/ppc64le,linux/s390x --push .
 
-.PHONY: init-container
-init-container: ## Init Buildx
-	docker buildx create --use && docker buildx inspect --bootstrap
 ##@ Deployment
 
 ifndef ignore-not-found

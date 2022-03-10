@@ -33,7 +33,11 @@ type FlinkSessionSpec struct {
 	Image string `json:"image,omitempty"`
 
 	// 填写 flink 镜像拉取 secret
+	//+nullable
 	ImageSecret *string `json:"imageSecret,omitempty"`
+
+	// 是否在修改配置重启flink时自动清除ha信息，必填
+	AutoClean bool `json:"autoClean,omitempty"`
 
 	// SA，填写集群运行的 k8s service account 配置
 	//+kubebuilder:validation:MinLength=1
@@ -51,6 +55,19 @@ type FlinkSessionSpec struct {
 
 	// flink ha 配置
 	HA FlinkHA `json:"ha,omitempty"`
+
+	// 自定义配置项
+	//+nullable
+	Config FlinkConfig `json:"config,omitempty"`
+
+	// NodeSelector
+	//+nullable
+	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
+
+	// 均衡调度策略 ，可选值： Required 必须每个节点调度一个 Preferred 尽可能每个节点调度一个 None 不设置均衡调度
+	//+kubebuilder:validation:MinLength=1
+	//+kubebuilder:validation:Enum={Required,Preferred,None}
+	BalancedSchedule string `json:"balancedSchedule,omitempty"`
 }
 
 type FlinkResource struct {
@@ -135,11 +152,14 @@ type FlinkS3 struct {
 
 type FlinkHA struct {
 	// ha 类型，允许值 zookeeper  kubernetes none
+	//+kubebuilder:validation:Enum={zookeeper,kubernetes,none}
 	Typ FlinkHAType `json:"type,omitempty"`
 
 	// 仅 zookeeper ha 生效，配置 zk 地址
+	//+nullable
 	Quorum string `json:"quorum,omitempty"`
 	// 仅 zookeeper ha 生效，配置 ha 路径前缀
+	//+nullable
 	Path string `json:"path,omitempty"`
 }
 
@@ -150,6 +170,24 @@ const (
 	CONFIGMAPHA FlinkHAType = "kubernetes"
 	NONE        FlinkHAType = "none"
 )
+
+const (
+	RequiredDuringScheduling  string = `Required`
+	PreferredDuringScheduling string = `Preferred`
+	NoneScheduling            string = `None`
+)
+
+type FlinkConfig struct {
+	// 对应 $FLINK_HOME/conf/flink-conf.yaml ，不写使用镜像内预制配置文件
+	//+nullable
+	FlinkConf string `json:"flink-conf.yaml,omitempty"`
+	// 对应 $FLINK_HOME/conf/log4j-console.properties ，不写使用镜像内预制配置文件
+	//+nullable
+	Log4j string `json:"log4j-console.properties,omitempty"`
+	// 对应 $FLINK_HOME/conf/logback-console.xml ，不写使用镜像内预制配置文件
+	//+nullable
+	LogBack string `json:"logback-console.xml,omitempty"`
+}
 
 // FlinkSessionStatus defines the observed state of FlinkSession
 type FlinkSessionStatus struct {

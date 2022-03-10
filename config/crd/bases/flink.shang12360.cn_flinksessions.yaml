@@ -45,17 +45,52 @@ spec:
           spec:
             description: FlinkSessionSpec defines the desired state of FlinkSession
             properties:
+              autoClean:
+                description: 是否在修改配置重启flink时自动清除ha信息，必填
+                type: boolean
+              balancedSchedule:
+                description: 均衡调度策略 ，可选值： Required 必须每个节点调度一个 Preferred 尽可能每个节点调度一个
+                  None 不设置均衡调度
+                enum:
+                - Required
+                - Preferred
+                - None
+                minLength: 1
+                type: string
+              config:
+                description: 自定义配置项
+                nullable: true
+                properties:
+                  flink-conf.yaml:
+                    description: 对应 $FLINK_HOME/conf/flink-conf.yaml ，不写使用镜像内预制配置文件
+                    nullable: true
+                    type: string
+                  log4j-console.properties:
+                    description: 对应 $FLINK_HOME/conf/log4j-console.properties ，不写使用镜像内预制配置文件
+                    nullable: true
+                    type: string
+                  logback-console.xml:
+                    description: 对应 $FLINK_HOME/conf/logback-console.xml ，不写使用镜像内预制配置文件
+                    nullable: true
+                    type: string
+                type: object
               ha:
                 description: flink ha 配置
                 properties:
                   path:
                     description: 仅 zookeeper ha 生效，配置 ha 路径前缀
+                    nullable: true
                     type: string
                   quorum:
                     description: 仅 zookeeper ha 生效，配置 zk 地址
+                    nullable: true
                     type: string
                   type:
                     description: ha 类型，允许值 zookeeper  kubernetes none
+                    enum:
+                    - zookeeper
+                    - kubernetes
+                    - none
                     type: string
                 type: object
               image:
@@ -65,7 +100,14 @@ spec:
                 type: string
               imageSecret:
                 description: 填写 flink 镜像拉取 secret
+                nullable: true
                 type: string
+              nodeSelector:
+                additionalProperties:
+                  type: string
+                description: NodeSelector
+                nullable: true
+                type: object
               numberOfTaskSlots:
                 description: taskmanager 可用槽位，对应 taskmanager.numberOfTaskSlots
                 format: int32
