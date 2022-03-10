@@ -186,15 +186,19 @@ func (r *FlinkSessionReconciler) updateExternalResources(session *flinkv1.FlinkS
 	}
 	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession Update", "%s", "update")
 
-	err := r.cleanExternalResources(session)
-	if err != nil {
-		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "External Resources Error: %s", err.Error())
-		return err
+	if session.Spec.AutoClean {
+		err := r.cleanExternalResources(session)
+		if err != nil {
+			r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "External Resources Clean Error: %s", err.Error())
+			return err
+		}
+		r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession Update", "%s", "External Resources Clean successful!")
+	} else {
+		klog.Info("自动清理 ha 及状态后端功能关闭，跳过相关流程！")
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "External Resources Clean skip!")
 	}
 
-	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession Update", "%s", "External Resources successful!")
-
-	err = r.commitBootJob(session)
+	err := r.commitBootJob(session)
 	if err != nil {
 		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "Commit Job Error: %s", err.Error())
 		return err
@@ -222,12 +226,18 @@ func (r *FlinkSessionReconciler) deleteExternalResources(session *flinkv1.FlinkS
 		return err
 	}
 
-	err := r.cleanExternalResources(session)
-	if err != nil {
-		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession delete", "External Resources Error: %s", err.Error())
-		return err
+	if session.Spec.AutoClean {
+		err := r.cleanExternalResources(session)
+		if err != nil {
+			r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession delete", "External Resources Clean Error: %s", err.Error())
+			return err
+		}
+		r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession delete", "External Resources Clean %s!", "ok")
+	} else {
+		klog.Info("自动清理 ha 及状态后端功能关闭，跳过相关流程！")
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession delete", "External Resources Clean skip!")
 	}
-	r.Recorder.Eventf(session, corev1.EventTypeNormal, "FlinkSession delete", "%s", "ok")
+
 	return nil
 }
 

@@ -33,7 +33,11 @@ type FlinkSessionSpec struct {
 	Image string `json:"image,omitempty"`
 
 	// 填写 flink 镜像拉取 secret
+	//+nullable
 	ImageSecret *string `json:"imageSecret,omitempty"`
+
+	// 是否在修改配置重启flink时自动清除ha信息，必填
+	AutoClean bool `json:"autoClean,omitempty"`
 
 	// SA，填写集群运行的 k8s service account 配置
 	//+kubebuilder:validation:MinLength=1

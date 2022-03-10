@@ -45,6 +45,9 @@ spec:
           spec:
             description: FlinkSessionSpec defines the desired state of FlinkSession
             properties:
+              autoClean:
+                description: 是否在修改配置重启flink时自动清除ha信息，必填
+                type: boolean
               balancedSchedule:
                 description: 均衡调度策略 ，可选值： Required 必须每个节点调度一个 Preferred 尽可能每个节点调度一个
                   None 不设置均衡调度
@@ -97,6 +100,7 @@ spec:
                 type: string
               imageSecret:
                 description: 填写 flink 镜像拉取 secret
+                nullable: true
                 type: string
               nodeSelector:
                 additionalProperties:
