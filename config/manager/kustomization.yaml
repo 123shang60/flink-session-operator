@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: 123shang60/flink-session-operator
-  newTag: 0.1.0
+  newTag: 0.2.0
