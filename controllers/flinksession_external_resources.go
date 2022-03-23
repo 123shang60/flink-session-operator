@@ -69,7 +69,7 @@ func (r *FlinkSessionReconciler) cleanExternalResources(f *flinkv1.FlinkSession)
 		klog.Error("minio 不可用，请检查 minio 配置！", err)
 		return errors.New("minio 不可用，请检查 minio 配置！")
 	}
-	err = minioClient.TracBucket(f.Spec.S3.Bucket)
+	err = minioClient.TracFile(f.Spec.S3.Bucket, fmt.Sprintf("%s/flink/ha/metadata", f.Name))
 	if err != nil {
 		klog.Error("minio 初始化 bucket 失败！，忽略", err)
 	} else {
