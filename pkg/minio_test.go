@@ -20,15 +20,15 @@ func TestCreateBucket(t *testing.T) {
 	conn, err := AutoConnMinio(EndPoint, AccessKeyID, SecretAccessKey)
 	assert.Nil(t, err)
 
-	err = conn.TracBucket(TestBucketCreate)
+	err = conn.TracFile(TestBucketCreate, "")
 	assert.Nil(t, err)
 }
 
-func TestCleanBucket(t *testing.T) {
+func TestCleanFile(t *testing.T) {
 	conn, err := AutoConnMinio(EndPoint, AccessKeyID, SecretAccessKey)
 	assert.Nil(t, err)
 
-	err = conn.TracBucket(TestBucketDelete)
+	err = conn.TracFile(TestBucketDelete, "")
 	assert.Nil(t, err)
 
 	// 上传一些文件
@@ -45,6 +45,30 @@ func TestCleanBucket(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	err = conn.TracBucket(TestBucketDelete)
+	err = conn.TracFile(TestBucketDelete, "")
+	assert.Nil(t, err)
+}
+
+func TestCleanFilePrefix(t *testing.T) {
+	conn, err := AutoConnMinio(EndPoint, AccessKeyID, SecretAccessKey)
+	assert.Nil(t, err)
+
+	err = conn.TracFile(TestBucketDelete, "")
+	assert.Nil(t, err)
+
+	// 上传一些文件
+	reader := strings.NewReader("somethings test")
+
+	_, err = conn.PutObject(
+		context.Background(),
+		TestBucketDelete,
+		"test/deletes.txt",
+		reader,
+		reader.Size(),
+		minio.PutObjectOptions{ContentType: "application/octet-stream"},
+	)
+	assert.Nil(t, err)
+
+	err = conn.TracFile(TestBucketDelete, "test")
 	assert.Nil(t, err)
 }
