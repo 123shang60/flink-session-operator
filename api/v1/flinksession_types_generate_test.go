@@ -22,5 +22,7 @@ func TestBuildNodeSelector(t *testing.T) {
 
 	res = buildNodeSelector(maps)
 
-	assert.Equal(t, "flink:run,disk:ssd", res)
+	if res != "flink:run,disk:ssd" && res != "disk:ssd,flink:run" {
+		assert.Fail(t, "map 拼接失败！")
+	}
 }
