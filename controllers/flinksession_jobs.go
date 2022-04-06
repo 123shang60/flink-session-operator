@@ -120,7 +120,9 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 		)
 	}
 
-	if session.Spec.BalancedSchedule == flinkv1.PreferredDuringScheduling || session.Spec.BalancedSchedule == flinkv1.RequiredDuringScheduling {
+	if session.Spec.BalancedSchedule == flinkv1.PreferredDuringScheduling ||
+		session.Spec.BalancedSchedule == flinkv1.RequiredDuringScheduling ||
+		(session.Spec.Volumes != nil && len(session.Spec.Volumes) == 0) {
 		bootConfigMap.Data[`pod-template.yaml`] = generatePodTemplate(
 			session.Spec.BalancedSchedule,
 			session.Name,
@@ -163,78 +165,69 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 }
 
 func generatePodTemplate(strategy, appName, nameSpace string) string {
-	var podtemplate *apiv1.Pod
+	//var podtemplate *apiv1.Pod
+	podtemplate := &apiv1.Pod{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Pod",
+			APIVersion: "v1",
+		},
+		Spec: apiv1.PodSpec{
+			Containers: []apiv1.Container{},
+		},
+	}
 	if strategy == flinkv1.PreferredDuringScheduling {
-		podtemplate = &apiv1.Pod{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "Pod",
-				APIVersion: "v1",
-			},
-			Spec: apiv1.PodSpec{
-				Affinity: &apiv1.Affinity{
-					PodAntiAffinity: &apiv1.PodAntiAffinity{
-						PreferredDuringSchedulingIgnoredDuringExecution: []apiv1.WeightedPodAffinityTerm{
-							{
-								Weight: 100,
-								PodAffinityTerm: apiv1.PodAffinityTerm{
-									LabelSelector: &metav1.LabelSelector{
-										MatchExpressions: []metav1.LabelSelectorRequirement{
-											{
-												Key:      "app",
-												Operator: metav1.LabelSelectorOpIn,
-												Values:   []string{appName},
-											},
-											{
-												Key:      "type",
-												Operator: metav1.LabelSelectorOpIn,
-												Values:   []string{FlinkNativeType},
-											},
-										},
+		podtemplate.Spec.Affinity = &apiv1.Affinity{
+			PodAntiAffinity: &apiv1.PodAntiAffinity{
+				PreferredDuringSchedulingIgnoredDuringExecution: []apiv1.WeightedPodAffinityTerm{
+					{
+						Weight: 100,
+						PodAffinityTerm: apiv1.PodAffinityTerm{
+							LabelSelector: &metav1.LabelSelector{
+								MatchExpressions: []metav1.LabelSelectorRequirement{
+									{
+										Key:      "app",
+										Operator: metav1.LabelSelectorOpIn,
+										Values:   []string{appName},
 									},
-									Namespaces:  []string{nameSpace},
-									TopologyKey: DefaultTopologyKey,
+									{
+										Key:      "type",
+										Operator: metav1.LabelSelectorOpIn,
+										Values:   []string{FlinkNativeType},
+									},
 								},
 							},
+							Namespaces:  []string{nameSpace},
+							TopologyKey: DefaultTopologyKey,
 						},
 					},
 				},
-				Containers: []apiv1.Container{},
 			},
 		}
 	}
 
 	if strategy == flinkv1.RequiredDuringScheduling {
-		podtemplate = &apiv1.Pod{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "Pod",
-				APIVersion: "v1",
-			},
-			Spec: apiv1.PodSpec{
-				Affinity: &apiv1.Affinity{
-					PodAntiAffinity: &apiv1.PodAntiAffinity{
-						RequiredDuringSchedulingIgnoredDuringExecution: []apiv1.PodAffinityTerm{
-							{
-								LabelSelector: &metav1.LabelSelector{
-									MatchExpressions: []metav1.LabelSelectorRequirement{
-										{
-											Key:      "app",
-											Operator: metav1.LabelSelectorOpIn,
-											Values:   []string{appName},
-										},
-										{
-											Key:      "type",
-											Operator: metav1.LabelSelectorOpIn,
-											Values:   []string{FlinkNativeType},
-										},
-									},
+		podtemplate.Spec.Affinity = &apiv1.Affinity{
+			PodAntiAffinity: &apiv1.PodAntiAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: []apiv1.PodAffinityTerm{
+					{
+						LabelSelector: &metav1.LabelSelector{
+							MatchExpressions: []metav1.LabelSelectorRequirement{
+								{
+									Key:      "app",
+									Operator: metav1.LabelSelectorOpIn,
+									Values:   []string{appName},
 								},
-								Namespaces:  []string{nameSpace},
-								TopologyKey: DefaultTopologyKey,
+								{
+									Key:      "type",
+									Operator: metav1.LabelSelectorOpIn,
+									Values:   []string{FlinkNativeType},
+								},
 							},
 						},
+						Namespaces:  []string{nameSpace},
+						TopologyKey: DefaultTopologyKey,
 					},
 				},
-				Containers: []apiv1.Container{},
 			},
 		}
 	}

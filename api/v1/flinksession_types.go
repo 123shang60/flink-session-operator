@@ -17,6 +17,7 @@ limitations under the License.
 package v1
 
 import (
+	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -68,6 +69,10 @@ type FlinkSessionSpec struct {
 	//+kubebuilder:validation:MinLength=1
 	//+kubebuilder:validation:Enum={Required,Preferred,None}
 	BalancedSchedule string `json:"balancedSchedule,omitempty"`
+
+	Volumes []apiv1.Volume `json:"volumes,omitempty"`
+
+	VolumeMounts []apiv1.VolumeMount `json:"volumeMounts,omitempty"`
 }
 
 type FlinkResource struct {
