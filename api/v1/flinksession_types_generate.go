@@ -129,7 +129,11 @@ func (f *FlinkSession) GeneratePodTemplate() string {
 			APIVersion: "v1",
 		},
 		Spec: apiv1.PodSpec{
-			Containers: []apiv1.Container{},
+			Containers: []apiv1.Container{
+				{
+					Name: "flink-main-container",
+				},
+			},
 		},
 	}
 	if f.Spec.BalancedSchedule == PreferredDuringScheduling {
@@ -186,6 +190,15 @@ func (f *FlinkSession) GeneratePodTemplate() string {
 					},
 				},
 			},
+		}
+	}
+
+	if f.Spec.Volumes != nil && len(f.Spec.Volumes) != 0 {
+		podtemplate.Spec.Volumes = f.Spec.Volumes
+		if f.Spec.VolumeMounts != nil && len(f.Spec.VolumeMounts) != 0 {
+			for k, _ := range podtemplate.Spec.Containers {
+				podtemplate.Spec.Containers[k].VolumeMounts = f.Spec.VolumeMounts
+			}
 		}
 	}
 

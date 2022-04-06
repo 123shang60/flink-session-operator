@@ -2,12 +2,13 @@ package v1
 
 import (
 	"github.com/stretchr/testify/assert"
+	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
 const (
-	Expected = `apiVersion: v1
+	Expected1 = `apiVersion: v1
 kind: Pod
 metadata:
   creationTimestamp: null
@@ -30,7 +31,41 @@ spec:
           - test
           topologyKey: kubernetes.io/hostname
         weight: 100
-  containers: []
+  containers:
+  - name: flink-main-container
+    resources: {}
+status: {}
+`
+	Expected2 = `apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - flink
+          - key: type
+            operator: In
+            values:
+            - flink-native-kubernetes
+        namespaces:
+        - test
+        topologyKey: kubernetes.io/hostname
+  containers:
+  - name: flink-main-container
+    resources: {}
+    volumeMounts:
+    - mountPath: /tmp
+      name: test
+  volumes:
+  - emptyDir: {}
+    name: test
 status: {}
 `
 )
@@ -69,5 +104,32 @@ func TestPodTemplate(t *testing.T) {
 	}
 
 	template := session.GeneratePodTemplate()
-	assert.Equal(t, Expected, template)
+	assert.Equal(t, Expected1, template)
+
+	session = &FlinkSession{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "flink",
+			Namespace: "test",
+		},
+		Spec: FlinkSessionSpec{
+			BalancedSchedule: RequiredDuringScheduling,
+			Volumes: []apiv1.Volume{
+				{
+					Name: "test",
+					VolumeSource: apiv1.VolumeSource{
+						EmptyDir: &apiv1.EmptyDirVolumeSource{},
+					},
+				},
+			},
+			VolumeMounts: []apiv1.VolumeMount{
+				{
+					Name:      "test",
+					MountPath: "/tmp",
+				},
+			},
+		},
+	}
+
+	template = session.GeneratePodTemplate()
+	assert.Equal(t, Expected2, template)
 }
