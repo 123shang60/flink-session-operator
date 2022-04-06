@@ -25,6 +25,5 @@ const (
 )
 
 const (
-	DefaultMode        int32  = 0755
-	DefaultTopologyKey string = `kubernetes.io/hostname`
+	DefaultMode int32 = 0755
 )
