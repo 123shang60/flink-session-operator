@@ -15,6 +15,8 @@
 |config|FlinkConfig|||`Flink` 自定义配置项|
 |nodeSelector|map[string]string|null||为 `flink` 增加基于 `node label` 的 `nodeSelector`|
 |balancedSchedule|enum|None|{Required,Preferred,None}|均衡调度策略 ，可选值： `Required` 必须每个节点调度一个 `Preferred` 尽可能每个节点调度一个 `None` 不设置均衡调度|
+|volumes|[]apiv1.Volume|null||为 `flink` 增加 卷挂载|
+|volumeMounts|[]apiv1.VolumeMount|null||为 `flink` 所有 `container` 配置卷挂载|
 
 `FlinkResource` :
 
