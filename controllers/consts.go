@@ -19,12 +19,10 @@ package controllers
 const (
 	FlinkSessionFinalizerName string = `flink.shang12360.cn/finalizer`
 	HashAnnotations           string = `flink.shang12360.cn/hash`
-	FlinkNativeType           string = `flink-native-kubernetes`
 	FlinkRestPortName         string = `rest`
 	FlinkHAConfigType         string = `high-availability`
 )
 
 const (
-	DefaultMode        int32  = 0755
-	DefaultTopologyKey string = `kubernetes.io/hostname`
+	DefaultMode int32 = 0755
 )

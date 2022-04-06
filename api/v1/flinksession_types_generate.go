@@ -1,8 +1,12 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/123shang60/flink-session-operator/pkg"
+	yaml2 "github.com/ghodss/yaml"
+	apiv1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strconv"
 	"strings"
 )
@@ -115,4 +119,78 @@ func buildNodeSelector(selector map[string]string) string {
 	} else {
 		return str
 	}
+}
+
+func (f *FlinkSession) GeneratePodTemplate() string {
+	//var podtemplate *apiv1.Pod
+	podtemplate := &apiv1.Pod{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Pod",
+			APIVersion: "v1",
+		},
+		Spec: apiv1.PodSpec{
+			Containers: []apiv1.Container{},
+		},
+	}
+	if f.Spec.BalancedSchedule == PreferredDuringScheduling {
+		podtemplate.Spec.Affinity = &apiv1.Affinity{
+			PodAntiAffinity: &apiv1.PodAntiAffinity{
+				PreferredDuringSchedulingIgnoredDuringExecution: []apiv1.WeightedPodAffinityTerm{
+					{
+						Weight: 100,
+						PodAffinityTerm: apiv1.PodAffinityTerm{
+							LabelSelector: &metav1.LabelSelector{
+								MatchExpressions: []metav1.LabelSelectorRequirement{
+									{
+										Key:      "app",
+										Operator: metav1.LabelSelectorOpIn,
+										Values:   []string{f.Name},
+									},
+									{
+										Key:      "type",
+										Operator: metav1.LabelSelectorOpIn,
+										Values:   []string{FlinkNativeType},
+									},
+								},
+							},
+							Namespaces:  []string{f.Namespace},
+							TopologyKey: DefaultTopologyKey,
+						},
+					},
+				},
+			},
+		}
+	}
+
+	if f.Spec.BalancedSchedule == RequiredDuringScheduling {
+		podtemplate.Spec.Affinity = &apiv1.Affinity{
+			PodAntiAffinity: &apiv1.PodAntiAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: []apiv1.PodAffinityTerm{
+					{
+						LabelSelector: &metav1.LabelSelector{
+							MatchExpressions: []metav1.LabelSelectorRequirement{
+								{
+									Key:      "app",
+									Operator: metav1.LabelSelectorOpIn,
+									Values:   []string{f.Name},
+								},
+								{
+									Key:      "type",
+									Operator: metav1.LabelSelectorOpIn,
+									Values:   []string{FlinkNativeType},
+								},
+							},
+						},
+						Namespaces:  []string{f.Namespace},
+						TopologyKey: DefaultTopologyKey,
+					},
+				},
+			},
+		}
+	}
+
+	byte, _ := json.Marshal(podtemplate)
+	yaml, _ := yaml2.JSONToYAML(byte)
+
+	return string(yaml)
 }

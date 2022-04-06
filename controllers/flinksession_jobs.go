@@ -2,10 +2,8 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
-	yaml2 "github.com/ghodss/yaml"
 	batchv1 "k8s.io/api/batch/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -123,11 +121,7 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 	if session.Spec.BalancedSchedule == flinkv1.PreferredDuringScheduling ||
 		session.Spec.BalancedSchedule == flinkv1.RequiredDuringScheduling ||
 		(session.Spec.Volumes != nil && len(session.Spec.Volumes) == 0) {
-		bootConfigMap.Data[`pod-template.yaml`] = generatePodTemplate(
-			session.Spec.BalancedSchedule,
-			session.Name,
-			session.Namespace,
-		)
+		bootConfigMap.Data[`pod-template.yaml`] = session.GeneratePodTemplate()
 		bootJob.Spec.Template.Spec.Containers[0].VolumeMounts = append(
 			bootJob.Spec.Template.Spec.Containers[0].VolumeMounts,
 			apiv1.VolumeMount{
@@ -162,78 +156,4 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 	klog.Info("boot job 创建成功!")
 
 	return nil
-}
-
-func generatePodTemplate(strategy, appName, nameSpace string) string {
-	//var podtemplate *apiv1.Pod
-	podtemplate := &apiv1.Pod{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Pod",
-			APIVersion: "v1",
-		},
-		Spec: apiv1.PodSpec{
-			Containers: []apiv1.Container{},
-		},
-	}
-	if strategy == flinkv1.PreferredDuringScheduling {
-		podtemplate.Spec.Affinity = &apiv1.Affinity{
-			PodAntiAffinity: &apiv1.PodAntiAffinity{
-				PreferredDuringSchedulingIgnoredDuringExecution: []apiv1.WeightedPodAffinityTerm{
-					{
-						Weight: 100,
-						PodAffinityTerm: apiv1.PodAffinityTerm{
-							LabelSelector: &metav1.LabelSelector{
-								MatchExpressions: []metav1.LabelSelectorRequirement{
-									{
-										Key:      "app",
-										Operator: metav1.LabelSelectorOpIn,
-										Values:   []string{appName},
-									},
-									{
-										Key:      "type",
-										Operator: metav1.LabelSelectorOpIn,
-										Values:   []string{FlinkNativeType},
-									},
-								},
-							},
-							Namespaces:  []string{nameSpace},
-							TopologyKey: DefaultTopologyKey,
-						},
-					},
-				},
-			},
-		}
-	}
-
-	if strategy == flinkv1.RequiredDuringScheduling {
-		podtemplate.Spec.Affinity = &apiv1.Affinity{
-			PodAntiAffinity: &apiv1.PodAntiAffinity{
-				RequiredDuringSchedulingIgnoredDuringExecution: []apiv1.PodAffinityTerm{
-					{
-						LabelSelector: &metav1.LabelSelector{
-							MatchExpressions: []metav1.LabelSelectorRequirement{
-								{
-									Key:      "app",
-									Operator: metav1.LabelSelectorOpIn,
-									Values:   []string{appName},
-								},
-								{
-									Key:      "type",
-									Operator: metav1.LabelSelectorOpIn,
-									Values:   []string{FlinkNativeType},
-								},
-							},
-						},
-						Namespaces:  []string{nameSpace},
-						TopologyKey: DefaultTopologyKey,
-					},
-				},
-			},
-		}
-	}
-
-	byte, _ := json.Marshal(podtemplate)
-	yaml, _ := yaml2.JSONToYAML(byte)
-
-	return string(yaml)
 }
