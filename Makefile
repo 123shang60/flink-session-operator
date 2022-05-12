@@ -1,6 +1,7 @@
 
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
+PLATFORM ?= linux/amd64,linux/arm,linux/arm64,linux/ppc64le,linux/s390x
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.23
 
@@ -79,7 +80,7 @@ docker-push: ## Push docker image with the manager.
 
 .PHONY: container
 container: ## Build and Push image with all platform with the manager
-	docker buildx build -f Dockerfile -t ${IMG} --platform=linux/amd64,linux/arm,linux/arm64,linux/ppc64le,linux/s390x --push .
+	docker buildx build -f Dockerfile -t ${IMG} --platform=${PLATFORM} --push .
 
 ##@ Deployment
 

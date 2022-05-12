@@ -8,6 +8,7 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"time"
 )
@@ -155,5 +156,46 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 	}
 	klog.Info("boot job 创建成功!")
 
+	return nil
+}
+
+func (r *FlinkSessionReconciler) cleanBootJob(session *flinkv1.FlinkSession, success int32) error {
+	jobList := batchv1.JobList{}
+	if err := r.List(context.Background(), &jobList, client.MatchingLabels{
+		"flink": "flink-session-operator",
+	}, client.InNamespace(session.GetNamespace())); err != nil {
+		klog.Error("获取列表失败!", err)
+		return err
+	} else {
+		for _, job := range jobList.Items {
+			if job.Status.Succeeded == success {
+				for _, reference := range job.GetObjectMeta().GetOwnerReferences() {
+					if reference.APIVersion == `flink.shang12360.cn/v1` &&
+						reference.Kind == `FlinkSession` &&
+						reference.Name == session.Name {
+						jobName := job.Name
+						if err := r.Delete(context.Background(), &job); err != nil {
+							klog.Error("删除job失败!", err)
+						} else {
+							klog.Info("清理 job :", jobName)
+						}
+
+						if err := r.Delete(context.Background(), &apiv1.ConfigMap{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      jobName,
+								Namespace: session.Namespace,
+							},
+						}); err != nil {
+							klog.Error("删除job configmap失败!", err)
+						} else {
+							klog.Info("清理 job configmap:", jobName)
+						}
+
+						break
+					}
+				}
+			}
+		}
+	}
 	return nil
 }
