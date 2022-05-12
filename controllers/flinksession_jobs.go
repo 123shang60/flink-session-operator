@@ -159,15 +159,16 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 	return nil
 }
 
-func (r *FlinkSessionReconciler) cleanBootJob(session *flinkv1.FlinkSession) error {
+func (r *FlinkSessionReconciler) cleanBootJob(session *flinkv1.FlinkSession, success int32) error {
 	jobList := batchv1.JobList{}
 	if err := r.List(context.Background(), &jobList, client.MatchingLabels{
 		"flink": "flink-session-operator",
 	}, client.InNamespace(session.GetNamespace())); err != nil {
 		klog.Error("获取列表失败!", err)
+		return err
 	} else {
 		for _, job := range jobList.Items {
-			if job.Status.Succeeded == 1 {
+			if job.Status.Succeeded == success {
 				for _, reference := range job.GetObjectMeta().GetOwnerReferences() {
 					if reference.APIVersion == `flink.shang12360.cn/v1` &&
 						reference.Kind == `FlinkSession` &&

@@ -199,9 +199,13 @@ func (r *FlinkSessionReconciler) updateExternalResources(session *flinkv1.FlinkS
 		klog.Info("自动清理 ha 及状态后端功能关闭，跳过相关流程！")
 		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "External Resources Clean skip!")
 	}
+	// 更新时只清理不成功的 job ，防止误删
+	// 清理不成功，只告警但继续执行
+	if err := r.cleanBootJob(session, 0); err != nil {
+		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "Clean Job Error: %s", err.Error())
+	}
 
-	err := r.commitBootJob(session)
-	if err != nil {
+	if err := r.commitBootJob(session); err != nil {
 		r.Recorder.Eventf(session, corev1.EventTypeWarning, "FlinkSession Update", "Commit Job Error: %s", err.Error())
 		return err
 	}
@@ -246,6 +250,7 @@ func (r *FlinkSessionReconciler) deleteExternalResources(session *flinkv1.FlinkS
 func (r *FlinkSessionReconciler) updateSelfStatus(session *flinkv1.FlinkSession) error {
 	// 忽略错误
 	r.updateNodePort(session)
-	r.cleanBootJob(session)
+	// 更新状态只清理成功的 job
+	r.cleanBootJob(session, 1)
 	return nil
 }
