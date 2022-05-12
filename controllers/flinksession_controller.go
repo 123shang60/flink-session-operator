@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
 	"github.com/cnf/structhash"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -166,6 +167,7 @@ func (r *FlinkSessionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&flinkv1.FlinkSession{}).
 		Watches(&source.Kind{Type: &corev1.Service{}}, &FlinkSessionServiceHandler{}).
+		Watches(&source.Kind{Type: &batchv1.Job{}}, &FlinkSessionJobHandler{}).
 		Complete(r)
 }
 
@@ -244,5 +246,6 @@ func (r *FlinkSessionReconciler) deleteExternalResources(session *flinkv1.FlinkS
 func (r *FlinkSessionReconciler) updateSelfStatus(session *flinkv1.FlinkSession) error {
 	// 忽略错误
 	r.updateNodePort(session)
+	r.cleanBootJob(session)
 	return nil
 }
