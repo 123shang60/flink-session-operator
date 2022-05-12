@@ -174,12 +174,12 @@ func (r *FlinkSessionReconciler) cleanBootJob(session *flinkv1.FlinkSession, suc
 						reference.Kind == `FlinkSession` &&
 						reference.Name == session.Name {
 						jobName := job.Name
-						if err := r.Delete(context.Background(), &job); err != nil {
+						propagationPolicy := metav1.DeletePropagationBackground
+						if err := r.Delete(context.Background(), &job, &client.DeleteOptions{PropagationPolicy: &propagationPolicy}); err != nil {
 							klog.Error("删除job失败!", err)
 						} else {
 							klog.Info("清理 job :", jobName)
 						}
-
 						if err := r.Delete(context.Background(), &apiv1.ConfigMap{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      jobName,
