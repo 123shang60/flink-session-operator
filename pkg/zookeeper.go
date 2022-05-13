@@ -25,6 +25,7 @@ func AutoConnZk(quorum string) (*ZooKeeper, error) {
 
 // TODO: 递归删除
 func (zoo *ZooKeeper) AutoDelete(path string) error {
+	path = strings.TrimRight(path, "/")
 	klog.Infof("准备删除zk 路径: %s", path)
 
 	_, _, err := zoo.Get(path)
