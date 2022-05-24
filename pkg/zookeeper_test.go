@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"github.com/go-zookeeper/zk"
+	"github.com/123shang60/zk"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

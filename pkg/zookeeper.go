@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"github.com/go-zookeeper/zk"
+	"github.com/123shang60/zk"
 	"k8s.io/klog/v2"
 	"strings"
 	"time"
