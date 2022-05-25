@@ -15,7 +15,7 @@ func (r *FlinkSessionReconciler) cleanExternalResources(f *flinkv1.FlinkSession)
 	// 清理 ha
 	if f.Spec.HA.Typ == flinkv1.ZKHA {
 		klog.Info("zk ha 模式，开始清理！")
-		zkCli, err := pkg.AutoConnZk(f.Spec.HA.Quorum)
+		zkCli, err := pkg.AutoConnZk(f.Spec.HA.Quorum, nil)
 		defer zkCli.Close()
 		if err != nil {
 			klog.Error("zk 不可用，请检查 zk 配置！", err)

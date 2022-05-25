@@ -11,9 +11,28 @@ type ZooKeeper struct {
 	*zk.Conn
 }
 
-func AutoConnZk(quorum string) (*ZooKeeper, error) {
+type KerberosConfig struct {
+	Keytab       []byte
+	Krb5         string
+	PrincipalStr string
+}
+
+func AutoConnZk(quorum string, conf *KerberosConfig) (*ZooKeeper, error) {
 	host := strings.Split(quorum, ",")
-	connect, _, err := zk.Connect(host, time.Second*30)
+	connect, _, err := func() (*zk.Conn, <-chan zk.Event, error) {
+		if conf == nil {
+			return zk.Connect(host, 30*time.Second)
+		} else {
+			return zk.Connect(host, 30*time.Second, zk.WithSASLConfig(&zk.SASLConfig{
+				Enable: true,
+				KerberosConfig: &zk.KerberosConfig{
+					Keytab:       conf.Keytab,
+					Krb5:         conf.Krb5,
+					PrincipalStr: conf.PrincipalStr,
+				},
+			}))
+		}
+	}()
 	if err != nil {
 		klog.Error("zk 连接失败！", err)
 		return nil, err
@@ -23,7 +42,7 @@ func AutoConnZk(quorum string) (*ZooKeeper, error) {
 	}, nil
 }
 
-// TODO: 递归删除
+// AutoDelete 删除指定路径下全部数据
 func (zoo *ZooKeeper) AutoDelete(path string) error {
 	path = strings.TrimRight(path, "/")
 	klog.Infof("准备删除zk 路径: %s", path)
