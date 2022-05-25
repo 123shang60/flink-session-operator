@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	ZookeeperQuorum string = "kerberos.example.com:2181"
+	ZookeeperQuorum string = "127.0.0.1:2181"
 	TestPath        string = "/test"
 	TestInvalidPath string = "/test-1"
 
@@ -31,8 +31,8 @@ const (
 
 [realms]
  EXAMPLE.COM = {
-  kdc = kerberos.example.com:88
-  admin_server = kerberos.example.com:749
+  kdc = 127.0.0.1:88
+  admin_server = 127.0.0.1:749
   default_domain = example.com
  }
 

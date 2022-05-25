@@ -23,9 +23,6 @@ jobs:
       - name: Setup Minio
         run: docker run -itd -p 9000:9000 -e "MINIO_ROOT_USER=minioadmin" -e "MINIO_ROOT_PASSWORD=minioadmin"  minio/minio server /data
 
-      - name: Setup Hosts
-        run: echo "127.0.0.1 kerberos.example.com" >> /etc/hosts
-
       - name: Go Mod 
         run: go mod tidy -v 
 
