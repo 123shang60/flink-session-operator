@@ -70,9 +70,14 @@ type FlinkSessionSpec struct {
 	//+kubebuilder:validation:Enum={Required,Preferred,None}
 	BalancedSchedule string `json:"balancedSchedule,omitempty"`
 
+	// 卷配置
 	Volumes []apiv1.Volume `json:"volumes,omitempty"`
 
+	// 卷挂载点配置
 	VolumeMounts []apiv1.VolumeMount `json:"volumeMounts,omitempty"`
+
+	// flink 安全性相关配置
+	Security FlinkSecurity `json:"security,omitempty"`
 }
 
 type FlinkResource struct {
@@ -192,6 +197,31 @@ type FlinkConfig struct {
 	// 对应 $FLINK_HOME/conf/logback-console.xml ，不写使用镜像内预制配置文件
 	//+nullable
 	LogBack string `json:"logback-console.xml,omitempty"`
+}
+
+type FlinkSecurity struct {
+	// Kerberos 相关加固方式
+	Kerberos *Kerberos `json:"kerberos,omitempty"`
+}
+
+type Kerberos struct {
+	// Krb5 文件
+	//+nullable
+	Krb5 string `json:"krb5,omitempty"`
+	// 登录上下文列表，根据 Flink 文档支持 ZK 及 KAFKA
+	//+kubebuilder:validation:Enum={Client,KafkaClient,`Client,KafkaClient`,`KafkaClient,Client`}
+	//+nullable
+	Contexts string `json:"contexts,omitempty"`
+	// Kerberos 主体名称
+	//+nullable
+	Principal string `json:"principal,omitempty"`
+	// base64 编码的 Keytab 文件
+	//+nullable
+	Base64Keytab string `json:"base64Keytab,omitempty"`
+	// UseTicketCache
+	//+kubebuilder:default=true
+	//+nullable
+	UseTicketCache *bool `json:"useTicketCache,omitempty"`
 }
 
 // FlinkSessionStatus defines the observed state of FlinkSession

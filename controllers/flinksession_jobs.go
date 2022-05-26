@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -61,6 +62,15 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 								},
 							},
 						},
+						{
+							Name: "secret",
+							VolumeSource: apiv1.VolumeSource{
+								Secret: &apiv1.SecretVolumeSource{
+									SecretName:  jobName,
+									DefaultMode: &defaultMode,
+								},
+							},
+						},
 					},
 				},
 			},
@@ -73,6 +83,43 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 			Namespace: session.Namespace,
 		},
 		Data: make(map[string]string),
+	}
+
+	bootSecret := &apiv1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      jobName,
+			Namespace: session.Namespace,
+		},
+		Data: make(map[string][]byte),
+		Type: apiv1.SecretTypeOpaque,
+	}
+
+	// kerberos
+	if session.Spec.Security.Kerberos != nil {
+		keytab, err := base64.StdEncoding.DecodeString(session.Spec.Security.Kerberos.Base64Keytab)
+		if err != nil {
+			klog.Error("keytab 解码失败，无效的base64 : ", err)
+			klog.Error("keytab 原始码值: ", session.Spec.Security.Kerberos.Base64Keytab)
+			return err
+		}
+		bootSecret.Data["flink.keytab"] = keytab
+		bootConfigMap.Data["krb5.conf"] = session.Spec.Security.Kerberos.Krb5
+		bootJob.Spec.Template.Spec.Containers[0].VolumeMounts = append(
+			bootJob.Spec.Template.Spec.Containers[0].VolumeMounts,
+			apiv1.VolumeMount{
+				Name:      "config",
+				MountPath: "/opt/flink/conf/krb5.conf",
+				SubPath:   "krb5.conf",
+			},
+		)
+		bootJob.Spec.Template.Spec.Containers[0].VolumeMounts = append(
+			bootJob.Spec.Template.Spec.Containers[0].VolumeMounts,
+			apiv1.VolumeMount{
+				Name:      "secret",
+				MountPath: "/opt/flink/conf/flink.keytab",
+				SubPath:   "flink.keytab",
+			},
+		)
 	}
 
 	if session.Spec.ImageSecret != nil && len(*session.Spec.ImageSecret) != 0 {
@@ -143,9 +190,20 @@ func (r *FlinkSessionReconciler) commitBootJob(session *flinkv1.FlinkSession) er
 		klog.Error("configmap 设置 reference 失败!", err)
 	}
 
+	err = controllerutil.SetControllerReference(session, bootSecret, r.Scheme)
+	if err != nil {
+		klog.Error("secret 设置 reference 失败!", err)
+	}
+
 	err = r.Create(context.Background(), bootConfigMap)
 	if err != nil {
 		klog.Info("创建 configmap 失败!", err)
+		return err
+	}
+
+	err = r.Create(context.Background(), bootSecret)
+	if err != nil {
+		klog.Info("创建 secret 失败!", err)
 		return err
 	}
 
@@ -189,6 +247,17 @@ func (r *FlinkSessionReconciler) cleanBootJob(session *flinkv1.FlinkSession, suc
 							klog.Error("删除job configmap失败!", err)
 						} else {
 							klog.Info("清理 job configmap:", jobName)
+						}
+
+						if err := r.Delete(context.Background(), &apiv1.Secret{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      jobName,
+								Namespace: session.Namespace,
+							},
+						}); err != nil {
+							klog.Error("删除job secret 失败!", err)
+						} else {
+							klog.Info("清理 job secret:", jobName)
 						}
 
 						break

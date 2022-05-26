@@ -97,6 +97,20 @@ func (f *FlinkSession) GenerateCommand() (string, error) {
 		command.FieldConfig("kubernetes.pod-template-file.taskmanager", "/opt/flink/template/pod-template.yaml")
 	}
 
+	// Security
+	// Kerberos
+	if f.Spec.Security.Kerberos != nil {
+		command.FieldConfig("security.kerberos.login.keytab", "/opt/flink/conf/flink.keytab")
+		command.FieldConfig("security.kerberos.login.principal", f.Spec.Security.Kerberos.Principal)
+		command.FieldConfig("security.kerberos.login.contexts", f.Spec.Security.Kerberos.Contexts)
+		command.FieldConfig("security.kerberos.krb5-conf.path", "/opt/flink/conf/krb5.conf")
+		if *f.Spec.Security.Kerberos.UseTicketCache {
+			command.FieldConfig("security.kerberos.login.use-ticket-cache", "true")
+		} else {
+			command.FieldConfig("security.kerberos.login.use-ticket-cache", "false")
+		}
+	}
+
 	// 其他的必配项目
 	command.FieldConfig("env.java.opts", `"-XX:+UseG1GC"`)
 	command.FieldConfig("kubernetes.rest-service.exposed.type", "NodePort")

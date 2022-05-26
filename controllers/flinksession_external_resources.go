@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
@@ -9,18 +10,35 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 )
 
 func (r *FlinkSessionReconciler) cleanExternalResources(f *flinkv1.FlinkSession) error {
 	// 清理 ha
 	if f.Spec.HA.Typ == flinkv1.ZKHA {
 		klog.Info("zk ha 模式，开始清理！")
-		zkCli, err := pkg.AutoConnZk(f.Spec.HA.Quorum, nil)
-		defer zkCli.Close()
+		zkCli, err := func() (*pkg.ZooKeeper, error) {
+			// TODO: 判断异常逻辑修复！！！！
+			if f.Spec.Security.Kerberos == nil || !strings.Contains(f.Spec.Security.Kerberos.Contexts, "Client") {
+				return pkg.AutoConnZk(f.Spec.HA.Quorum, nil)
+			} else {
+				keytab, err := base64.StdEncoding.DecodeString(f.Spec.Security.Kerberos.Base64Keytab)
+				if err != nil {
+					klog.Error("kerberos 解析失败！", err)
+					return nil, err
+				}
+				return pkg.AutoConnZk(f.Spec.HA.Quorum, &pkg.KerberosConfig{
+					Keytab:       keytab,
+					Krb5:         f.Spec.Security.Kerberos.Krb5,
+					PrincipalStr: f.Spec.Security.Kerberos.Principal,
+				})
+			}
+		}()
 		if err != nil {
 			klog.Error("zk 不可用，请检查 zk 配置！", err)
 			return errors.New("zk 不可用，请检查 zk 配置！")
 		}
+		defer zkCli.Close()
 		if f.Spec.HA.Path != "" {
 			err := zkCli.AutoDelete(f.Spec.HA.Path)
 			if err != nil {
