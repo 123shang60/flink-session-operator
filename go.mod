@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/123shang60/zk v1.0.3
 	github.com/cnf/structhash v0.0.0-20201127153200-e1b16c1ebc08
-	github.com/ghodss/yaml v1.0.0
 	github.com/minio/minio-go/v7 v7.0.23
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
@@ -15,6 +14,7 @@ require (
 	k8s.io/client-go v0.23.0
 	k8s.io/klog/v2 v2.30.0
 	sigs.k8s.io/controller-runtime v0.11.0
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -91,5 +91,4 @@ require (
 	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b // indirect
 	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.0 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )

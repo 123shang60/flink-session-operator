@@ -1,14 +1,14 @@
 package v1
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/123shang60/flink-session-operator/pkg"
-	yaml2 "github.com/ghodss/yaml"
-	apiv1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strconv"
 	"strings"
+
+	"github.com/123shang60/flink-session-operator/pkg"
+	apiv1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 )
 
 func (f *FlinkSession) GenerateCommand() (string, error) {
@@ -216,8 +216,7 @@ func (f *FlinkSession) GeneratePodTemplate() string {
 		}
 	}
 
-	byte, _ := json.Marshal(podtemplate)
-	yaml, _ := yaml2.JSONToYAML(byte)
+	byte, _ := yaml.Marshal(podtemplate)
 
-	return string(yaml)
+	return string(byte)
 }
