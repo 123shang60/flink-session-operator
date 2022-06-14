@@ -5,12 +5,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"strings"
+
 	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
 	"github.com/123shang60/flink-session-operator/pkg"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
 )
 
 func (r *FlinkSessionReconciler) cleanExternalResources(f *flinkv1.FlinkSession) error {
