@@ -5,8 +5,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"strings"
-
 	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
 	"github.com/123shang60/flink-session-operator/pkg"
 	corev1 "k8s.io/api/core/v1"
@@ -19,8 +17,7 @@ func (r *FlinkSessionReconciler) cleanExternalResources(f *flinkv1.FlinkSession)
 	if f.Spec.HA.Typ == flinkv1.ZKHA {
 		klog.Info("zk ha 模式，开始清理！")
 		zkCli, err := func() (*pkg.ZooKeeper, error) {
-			// TODO: 判断异常逻辑修复！！！！
-			if f.Spec.Security.Kerberos == nil || !strings.Contains(f.Spec.Security.Kerberos.Contexts, "Client") {
+			if f.Spec.Security.Kerberos == nil || !pkg.SplitContainer(f.Spec.Security.Kerberos.Contexts, ",", "Client") {
 				return pkg.AutoConnZk(f.Spec.HA.Quorum, nil)
 			} else {
 				keytab, err := base64.StdEncoding.DecodeString(f.Spec.Security.Kerberos.Base64Keytab)
