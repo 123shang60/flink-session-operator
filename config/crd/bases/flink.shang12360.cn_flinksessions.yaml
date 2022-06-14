@@ -217,7 +217,42 @@ spec:
                 description: SA，填写集群运行的 k8s service account 配置
                 minLength: 1
                 type: string
+              security:
+                description: flink 安全性相关配置
+                properties:
+                  kerberos:
+                    description: Kerberos 相关加固方式
+                    properties:
+                      base64Keytab:
+                        description: base64 编码的 Keytab 文件
+                        nullable: true
+                        type: string
+                      contexts:
+                        description: 登录上下文列表，根据 Flink 文档支持 ZK 及 KAFKA
+                        enum:
+                        - Client
+                        - KafkaClient
+                        - Client,KafkaClient
+                        - KafkaClient,Client
+                        nullable: true
+                        type: string
+                      krb5:
+                        description: Krb5 文件
+                        nullable: true
+                        type: string
+                      principal:
+                        description: Kerberos 主体名称
+                        nullable: true
+                        type: string
+                      useTicketCache:
+                        default: true
+                        description: UseTicketCache
+                        nullable: true
+                        type: boolean
+                    type: object
+                type: object
               volumeMounts:
+                description: 卷挂载点配置
                 items:
                   description: VolumeMount describes a mounting of a Volume within
                     a container.
@@ -256,6 +291,7 @@ spec:
                   type: object
                 type: array
               volumes:
+                description: 卷配置
                 items:
                   description: Volume represents a named volume in a pod that may
                     be accessed by any container in the pod.

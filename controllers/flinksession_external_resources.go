@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
@@ -15,7 +16,22 @@ func (r *FlinkSessionReconciler) cleanExternalResources(f *flinkv1.FlinkSession)
 	// 清理 ha
 	if f.Spec.HA.Typ == flinkv1.ZKHA {
 		klog.Info("zk ha 模式，开始清理！")
-		zkCli, err := pkg.AutoConnZk(f.Spec.HA.Quorum)
+		zkCli, err := func() (*pkg.ZooKeeper, error) {
+			if f.Spec.Security.Kerberos == nil || !pkg.SplitContainer(f.Spec.Security.Kerberos.Contexts, ",", "Client") {
+				return pkg.AutoConnZk(f.Spec.HA.Quorum, nil)
+			} else {
+				keytab, err := base64.StdEncoding.DecodeString(f.Spec.Security.Kerberos.Base64Keytab)
+				if err != nil {
+					klog.Error("kerberos 解析失败！", err)
+					return nil, err
+				}
+				return pkg.AutoConnZk(f.Spec.HA.Quorum, &pkg.KerberosConfig{
+					Keytab:       keytab,
+					Krb5:         f.Spec.Security.Kerberos.Krb5,
+					PrincipalStr: f.Spec.Security.Kerberos.Principal,
+				})
+			}
+		}()
 		if err != nil {
 			klog.Error("zk 不可用，请检查 zk 配置！", err)
 			return errors.New("zk 不可用，请检查 zk 配置！")

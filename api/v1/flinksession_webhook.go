@@ -17,7 +17,9 @@ limitations under the License.
 package v1
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
@@ -65,6 +67,12 @@ func (r *FlinkSession) ValidateCreate() error {
 
 	klog.Info("validate create hook is :", string(b))
 	// TODO(user): fill in your validation logic upon object creation.
+	if r.Spec.Security.Kerberos != nil {
+		if _, err := base64.StdEncoding.DecodeString(r.Spec.Security.Kerberos.Base64Keytab); err != nil {
+			klog.Error("创建校验失败！不是正确的 base64！", err)
+			return errors.New("error base64 format ! :" + err.Error())
+		}
+	}
 	return nil
 }
 
@@ -80,6 +88,12 @@ func (r *FlinkSession) ValidateUpdate(old runtime.Object) error {
 
 	klog.Info("validate update old hook is :", string(b))
 	// TODO(user): fill in your validation logic upon object update.
+	if r.Spec.Security.Kerberos != nil {
+		if _, err := base64.StdEncoding.DecodeString(r.Spec.Security.Kerberos.Base64Keytab); err != nil {
+			klog.Error("创建校验失败！不是正确的 base64！", err)
+			return errors.New("error base64 format ! :" + err.Error())
+		}
+	}
 	return nil
 }
 

@@ -17,6 +17,7 @@
 |balancedSchedule|enum|None|{Required,Preferred,None}|均衡调度策略 ，可选值： `Required` 必须每个节点调度一个 `Preferred` 尽可能每个节点调度一个 `None` 不设置均衡调度|
 |volumes|[]apiv1.Volume|null||为 `flink` 增加 卷挂载|
 |volumeMounts|[]apiv1.VolumeMount|null||为 `flink` 所有 `container` 配置卷挂载|
+|security|FlinkSecurity|null||`flink` 安全性配置|
 
 `FlinkResource` :
 
@@ -99,6 +100,22 @@
 |flink-conf.yaml|string|||对应 `$FLINK_HOME/conf/flink-conf.yaml` ，不写使用镜像内预制配置文件|
 |log4j-console.properties||||对应 `$FLINK_HOME/conf/log4j-console.properties` ，不写使用镜像内预制配置文件|
 |logback-console.xml||||对应 `$FLINK_HOME/conf/logback-console.xml` ，不写使用镜像内预制配置文件|
+
+`FlinkSecurity` :
+
+|参数|类型|默认值|枚举值|说明|  
+|-|-|-|-|-|
+|kerberos|KerberosConf|||`Kerberos` 相关配置|
+
+`KerberosConf` :
+
+|参数|类型|默认值|枚举值|说明|  
+|-|-|-|-|-|
+|krb5|string|||`Krb5` 文件|
+|contexts|string||`Client`,`KafkaClient`,`Client,KafkaClient`,`KafkaClient,Client`|登录上下文列表，根据 `Flink` 文档支持 `ZK` 及 `KAFKA`|
+|principal|string|||`Kerberos` 主体名称|
+|base64Keytab|string|||`base64` 编码的 `Keytab` 文件|
+|useTicketCache|bool|`true`||`UseTicketCache`，是否使用 `Ticket` 缓存|
 
 `status` :
 
