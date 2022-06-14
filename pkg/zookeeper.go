@@ -29,6 +29,7 @@ func AutoConnZk(quorum string, conf *KerberosConfig) (*ZooKeeper, error) {
 					Keytab:       conf.Keytab,
 					Krb5:         conf.Krb5,
 					PrincipalStr: conf.PrincipalStr,
+					ServiceName:  "zookeeper",
 				},
 			}))
 		}
