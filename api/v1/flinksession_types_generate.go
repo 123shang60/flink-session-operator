@@ -1,14 +1,14 @@
 package v1
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/123shang60/flink-session-operator/pkg"
-	yaml2 "github.com/ghodss/yaml"
-	apiv1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strconv"
 	"strings"
+
+	"github.com/123shang60/flink-session-operator/pkg"
+	apiv1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 )
 
 func (f *FlinkSession) GenerateCommand() (string, error) {
@@ -95,6 +95,20 @@ func (f *FlinkSession) GenerateCommand() (string, error) {
 		command.FieldConfig("kubernetes.pod-template-file", "/opt/flink/template/pod-template.yaml")
 		command.FieldConfig("kubernetes.pod-template-file.jobmanager", "/opt/flink/template/pod-template.yaml")
 		command.FieldConfig("kubernetes.pod-template-file.taskmanager", "/opt/flink/template/pod-template.yaml")
+	}
+
+	// Security
+	// Kerberos
+	if f.Spec.Security.Kerberos != nil {
+		command.FieldConfig("security.kerberos.login.keytab", "/opt/flink/conf/flink.keytab")
+		command.FieldConfig("security.kerberos.login.principal", f.Spec.Security.Kerberos.Principal)
+		command.FieldConfig("security.kerberos.login.contexts", f.Spec.Security.Kerberos.Contexts)
+		command.FieldConfig("security.kerberos.krb5-conf.path", "/opt/flink/conf/krb5.conf")
+		if *f.Spec.Security.Kerberos.UseTicketCache {
+			command.FieldConfig("security.kerberos.login.use-ticket-cache", "true")
+		} else {
+			command.FieldConfig("security.kerberos.login.use-ticket-cache", "false")
+		}
 	}
 
 	// 其他的必配项目
@@ -202,8 +216,7 @@ func (f *FlinkSession) GeneratePodTemplate() string {
 		}
 	}
 
-	byte, _ := json.Marshal(podtemplate)
-	yaml, _ := yaml2.JSONToYAML(byte)
+	byte, _ := yaml.Marshal(podtemplate)
 
-	return string(yaml)
+	return string(byte)
 }

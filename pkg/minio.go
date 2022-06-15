@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"context"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"k8s.io/klog/v2"
@@ -43,7 +44,6 @@ func (m *MinioClient) TracFile(bucket, prefix string) error {
 	}
 	if exists {
 		klog.Info("bucket 已经存在，开始清理")
-		// TODO: clean all object and bucket
 		if err := m.removeFile(ctx, bucket, prefix); err != nil {
 			klog.Error("minio bucket 清理失败！", err)
 			return err

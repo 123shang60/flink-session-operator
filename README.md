@@ -25,6 +25,7 @@ flink session 集群部署
   - [特性功能](#特性功能)
     - [配置变更时清理 ha 及状态后端信息](#配置变更时清理-ha-及状态后端信息)
     - [任意卷挂载](#任意卷挂载)
+    - [Kerberos 支持](#kerberos-支持)
   - [注意事项](#注意事项)
   - [FAQ](#faq)
 
@@ -69,6 +70,15 @@ flink session 集群部署
 ### 任意卷挂载
 
 通过 `{{spec.volumes}}` 及 `{{spec.volumeMounts}}` 配置，可以任意的为 `flink` 所有 pod 挂载目录。通过类似功能，可以实现基于 `nfs` 的多 `pod` 间目录共享或者独立 `rocksdb` 读写目录等高级功能。
+
+### Kerberos 支持
+
+支持以下两种模式的 `Kerberos` 一件化配置
+
+- `kafka` 带 `Kerberos` 认证
+- `zookeeper` 作为 `HA` 时带有 `Kerberos` 认证
+
+详细配置方式参考配置文档
 
 ## 注意事项
 
