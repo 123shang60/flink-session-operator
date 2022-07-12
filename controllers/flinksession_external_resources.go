@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+
 	flinkv1 "github.com/123shang60/flink-session-operator/api/v1"
 	"github.com/123shang60/flink-session-operator/pkg"
 	corev1 "k8s.io/api/core/v1"
@@ -78,18 +79,18 @@ func (r *FlinkSessionReconciler) cleanExternalResources(f *flinkv1.FlinkSession)
 	} else {
 		klog.Info("未开启 ha ，无需清理！")
 	}
-	// 初始化 minio
-	klog.Info("开始清理 minio")
-	minioClient, err := pkg.AutoConnMinio(f.Spec.S3.EndPoint, f.Spec.S3.AccessKey, f.Spec.S3.SecretKey)
+	// 初始化 s3
+	klog.Info("开始清理 s3")
+	s3Client, err := pkg.AutoConnS3(f.Spec.S3.EndPoint, f.Spec.S3.AccessKey, f.Spec.S3.SecretKey)
 	if err != nil {
-		klog.Error("minio 不可用，请检查 minio 配置！", err)
-		return errors.New("minio 不可用，请检查 minio 配置！")
+		klog.Error("s3 不可用，请检查 s3 配置！", err)
+		return errors.New("s3 不可用，请检查 s3 配置！")
 	}
-	err = minioClient.TracFile(f.Spec.S3.Bucket, fmt.Sprintf("%s/flink/ha/metadata", f.Name))
+	err = s3Client.TracFile(f.Spec.S3.Bucket, fmt.Sprintf("%s/flink/ha/metadata", f.Name))
 	if err != nil {
-		klog.Error("minio 初始化 bucket 失败！，忽略", err)
+		klog.Error("s3 初始化 bucket 失败！，忽略", err)
 	} else {
-		klog.Info("minio 清理成功！")
+		klog.Info("s3 清理成功！")
 	}
 	return nil
 }
