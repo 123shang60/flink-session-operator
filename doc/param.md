@@ -18,6 +18,7 @@
 |volumes|[]apiv1.Volume|null||为 `flink` 增加 卷挂载|
 |volumeMounts|[]apiv1.VolumeMount|null||为 `flink` 所有 `container` 配置卷挂载|
 |security|FlinkSecurity|null||`flink` 安全性配置|
+|applicationConfig|ApplicationConfig|null||`flink` 在 `Application` 模式下配置参数|
 
 `FlinkResource` :
 
@@ -116,6 +117,14 @@
 |principal|string|||`Kerberos` 主体名称|
 |base64Keytab|string|||`base64` 编码的 `Keytab` 文件|
 |useTicketCache|bool|`true`||`UseTicketCache`，是否使用 `Ticket` 缓存|
+
+`ApplicationConfig` :
+
+|参数|类型|默认值|枚举值|说明|  
+|-|-|-|-|-|
+|jarPath| string |""|| 运行 `Application` 的 `jar` 包，仅支持 `local://` |
+|args|[]string|null|| 运行需要的额外参数 |
+|parallelism|int64|0||并行度配置|
 
 `status` :
 
