@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 // Package v1 contains API Schema definitions for the flink v1 API group
-//+kubebuilder:object:generate=true
-//+groupName=flink.shang12360.cn
+// +kubebuilder:object:generate=true
+// +groupName=flink.shang12360.cn
 package v1
 
 import (
