@@ -11,6 +11,7 @@ flink session 集群部署
 - 自动化 flink session 集群部署流程
 - 自动化修改 flink session 集群资源配置
 - 自动化清理 flink session 集群
+- 自动配置 kerberos
 
 目录
 
@@ -26,6 +27,7 @@ flink session 集群部署
     - [配置变更时清理 ha 及状态后端信息](#配置变更时清理-ha-及状态后端信息)
     - [任意卷挂载](#任意卷挂载)
     - [Kerberos 支持](#kerberos-支持)
+    - [Application 模式支持](#application-模式支持)
   - [注意事项](#注意事项)
   - [FAQ](#faq)
 
@@ -80,10 +82,16 @@ flink session 集群部署
 
 详细配置方式参考配置文档
 
+### Application 模式支持
+
+在配置项 `applicationConfig` 不为空时，支持 `Flink` 任务自动转换为 `Application` 模式运行
+
+详细配置参数参考配置文档
+
 ## 注意事项
 
 1. 建议使用 `minio` 等 `s3` 后端作为状态后端及 `ha` 配置存储，暂不支持 `hadoop` 模式；
-2. 作为状态后端的 `bucket` 请务必保证不被其他程序使用。开启清理 `ha` 信息功能会，重启 `flink` 集群时对应 `bucket` 数据会被完整删除
+2. 作为状态后端的 `bucket` 请务必保证不被其他程序使用。开启清理 `ha` 信息功能后，重启 `flink` 集群时对应 `bucket` 的 `HA` 路径下文件会被完整删除
 
 ## FAQ
 

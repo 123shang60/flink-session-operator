@@ -27,6 +27,23 @@
 
 ## 是否会支持 kerberos 认证？
 
-当前，`flink` 支持的 `kerberos` 认证主要是与 `zookeeper` 以及 `kafka` 的认证。因当前 golang 对 `zookeeper` 的 `kerberos` 认证过程无直接可用的第三方库，所以暂时不进行相关功能的开发。
+目前最新版本已经可以支持 `kerberos` 认证。
 
+技术方案分析：
+
+当前 `Flink` 对 `Kerberos` 认证的支持主要体现在两部分:
+
+- `Kafka` 连接支持 `Kerberos` 认证
+- `Flink` 本身使用 `Zookeeper` 支持 `Kerberos` 认证
+
+对于本工具来说，因为需要操作 `Flink` 的 `HA` 信息，因此必须解决 `Zookeeper` 连接的 `Kerberos` 认证问题。当前社区，可以找到的支持 `go-zookeeper` 的可行方案有:
+
+- [gosasl-zk](https://github.com/wenbingshen/zk/tree/kerb)
+- [gokrb5-zk](https://github.com/zhuliquan/zk)
+
+第一种方案是使用 [gosasl](https://github.com/beltran/gosasl) 库，依赖 `kinit` 命令进行认证；第二种方案是使用 [gokrb5](https://github.com/jcmturner/gokrb5) 这种原生方案进行认证。
+
+在 `operator` 场景中，更适合使用第二种原生方案。因此，可以在 [gokrb5-zk](https://github.com/zhuliquan/zk) 方案的基础上，针对 `Flink` 连接 `Kerberos` 的特殊场景进行针对性改造。具体修改可以参考
+
+- [zk-kerberos](https://github.com/123shang60/zk/tree/kerberos)
 

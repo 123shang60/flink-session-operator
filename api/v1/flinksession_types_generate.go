@@ -14,7 +14,12 @@ import (
 func (f *FlinkSession) GenerateCommand() (string, error) {
 	// 构建 name 以及 namespaces
 	var command pkg.Command
-	command.WriteString(`$FLINK_HOME/bin/kubernetes-session.sh `)
+	if f.Spec.ApplicationConfig == nil {
+		command.WriteString(`$FLINK_HOME/bin/kubernetes-session.sh `)
+	} else {
+		command.WriteString(`$FLINK_HOME/bin/flink run-application --target kubernetes-application `)
+	}
+
 	command.FieldConfig("kubernetes.cluster-id", f.Name).FieldConfig("kubernetes.namespace", f.Namespace)
 	// service account
 	command.FieldConfig("kubernetes.service-account", f.Spec.Sa)
@@ -112,8 +117,21 @@ func (f *FlinkSession) GenerateCommand() (string, error) {
 	}
 
 	// 其他的必配项目
-	command.FieldConfig("env.java.opts", `"-XX:+UseG1GC"`)
+	// env.java.opts 仅在未特殊指定的情况下增加
+	if !strings.Contains(f.Spec.Config.FlinkConf, "env.java.opts") {
+		command.FieldConfig("env.java.opts", `"-XX:+UseG1GC"`)
+	}
 	command.FieldConfig("kubernetes.rest-service.exposed.type", "NodePort")
+
+	if f.Spec.ApplicationConfig != nil {
+		command.WriteString(fmt.Sprintf(`-p %d `, f.Spec.ApplicationConfig.Parallelism))
+		command.WriteString(f.Spec.ApplicationConfig.JarPath)
+		command.WriteString(` `)
+		for _, arg := range f.Spec.ApplicationConfig.Args {
+			command.WriteString(strings.Trim(arg, ` `))
+			command.WriteString(` `)
+		}
+	}
 
 	return command.Build(), nil
 }
