@@ -78,6 +78,19 @@ type FlinkSessionSpec struct {
 
 	// flink 安全性相关配置
 	Security FlinkSecurity `json:"security,omitempty"`
+
+	// Application 模式配置
+	//+nullable
+	ApplicationConfig *ApplicationConfig `json:"applicationConfig,omitempty"`
+}
+
+type ApplicationConfig struct {
+	// jar 包路径
+	JarPath string `json:"jarPath,omitempty"`
+	// Args 启动额外参数
+	Args []string `json:"args,omitempty"`
+	// parallelism 任务并行度
+	Parallelism int64 `json:"parallelism,omitempty"`
 }
 
 type FlinkResource struct {

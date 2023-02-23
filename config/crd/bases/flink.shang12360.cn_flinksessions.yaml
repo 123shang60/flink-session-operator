@@ -45,6 +45,23 @@ spec:
           spec:
             description: FlinkSessionSpec defines the desired state of FlinkSession
             properties:
+              applicationConfig:
+                description: Application 模式配置
+                nullable: true
+                properties:
+                  args:
+                    description: Args 启动额外参数
+                    items:
+                      type: string
+                    type: array
+                  jarPath:
+                    description: jar 包路径
+                    type: string
+                  parallelism:
+                    description: parallelism 任务并行度
+                    format: int64
+                    type: integer
+                type: object
               autoClean:
                 description: 是否在修改配置重启flink时自动清除ha信息，必填
                 type: boolean
