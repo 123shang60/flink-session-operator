@@ -37,6 +37,10 @@ type FlinkSessionSpec struct {
 	//+nullable
 	ImageSecret *string `json:"imageSecret,omitempty"`
 
+	// flink version 版本兼容标记，默认兼容 Flink 1.14 版本
+	//+nullable
+	FlinkVersion *string `json:"flinkVersion,omitempty"`
+
 	// 是否在修改配置重启flink时自动清除ha信息，必填
 	AutoClean bool `json:"autoClean,omitempty"`
 

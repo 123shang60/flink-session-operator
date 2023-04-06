@@ -195,6 +195,11 @@ func (in *FlinkSessionSpec) DeepCopyInto(out *FlinkSessionSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.FlinkVersion != nil {
+		in, out := &in.FlinkVersion, &out.FlinkVersion
+		*out = new(string)
+		**out = **in
+	}
 	out.Resource = in.Resource
 	out.S3 = in.S3
 	out.HA = in.HA
