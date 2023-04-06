@@ -68,6 +68,10 @@ spec:
     name: test
 status: {}
 `
+
+	ExpectCommand1 = `$FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink -Dkubernetes.namespace=test -Dtaskmanager.numberOfTaskSlots=0 -Dstate.backend=filesystem -Ds3.endpoint=http:// -Ds3.path.style.access=true -Dstate.checkpoints.dir=s3:///flink/flink/checkpoints -Dstate.savepoints.dir=s3:///flink/flink/savepoints -Dhistoryserver.archive.fs.dir=s3:///flink/flink/completed-jobs -Djobmanager.archive.fs.dir=s3:///flink/flink/archive -Dstate.backend.incremental=true -Dfs.overwrite-files=true -Dhigh-availability=org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory -Dhigh-availability.storageDir=s3:///flink/flink/ha/metadata -Denv.java.opts="-XX:+UseG1GC" -Dkubernetes.rest-service.exposed.type=NodePort `
+	ExpectCommand2 = `$FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink -Dkubernetes.namespace=test -Dtaskmanager.numberOfTaskSlots=0 -Dstate.backend=filesystem -Ds3.endpoint=http:// -Ds3.path.style.access=true -Dstate.checkpoints.dir=s3:///flink/flink/checkpoints -Dstate.savepoints.dir=s3:///flink/flink/savepoints -Dhistoryserver.archive.fs.dir=s3:///flink/flink/completed-jobs -Djobmanager.archive.fs.dir=s3:///flink/flink/archive -Dstate.backend.incremental=true -Dfs.overwrite-files=true -Dhigh-availability=KUBERNETES -Dhigh-availability.storageDir=s3:///flink/flink/ha/metadata -Denv.java.opts="-XX:+UseG1GC" -Dkubernetes.rest-service.exposed.type=NodePort `
+	ExpectCommand3 = `$FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink -Dkubernetes.namespace=test -Dtaskmanager.numberOfTaskSlots=0 -Dstate.backend=filesystem -Ds3.endpoint=http:// -Ds3.path.style.access=true -Dstate.checkpoints.dir=s3:///flink/flink/checkpoints -Dstate.savepoints.dir=s3:///flink/flink/savepoints -Dhistoryserver.archive.fs.dir=s3:///flink/flink/completed-jobs -Djobmanager.archive.fs.dir=s3:///flink/flink/archive -Dstate.backend.incremental=true -Dfs.overwrite-files=true -Dhigh-availability.type=KUBERNETES -Dhigh-availability.storageDir=s3:///flink/flink/ha/metadata -Denv.java.opts="-XX:+UseG1GC" -Dkubernetes.rest-service.exposed.type=NodePort `
 )
 
 func TestBuildNodeSelector(t *testing.T) {
@@ -132,4 +136,89 @@ func TestPodTemplate(t *testing.T) {
 
 	template = session.GeneratePodTemplate()
 	assert.Equal(t, Expected2, template)
+}
+
+func TestHAFlink(t *testing.T) {
+	session := &FlinkSession{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "flink",
+			Namespace: "test",
+		},
+		Spec: FlinkSessionSpec{
+			FlinkVersion: nil,
+			HA: FlinkHA{
+				Typ:    "kubernetes",
+				Quorum: "",
+				Path:   "",
+			},
+			BalancedSchedule: NoneScheduling,
+		},
+	}
+
+	template, err := session.GenerateCommand()
+	assert.Nil(t, err)
+	assert.Equal(t, ExpectCommand1, template)
+
+	version := "1.16"
+	session = &FlinkSession{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "flink",
+			Namespace: "test",
+		},
+		Spec: FlinkSessionSpec{
+			FlinkVersion: &version,
+			HA: FlinkHA{
+				Typ:    "kubernetes",
+				Quorum: "",
+				Path:   "",
+			},
+			BalancedSchedule: NoneScheduling,
+		},
+	}
+
+	template, err = session.GenerateCommand()
+	assert.Nil(t, err)
+	assert.Equal(t, ExpectCommand2, template)
+
+	version = "1.17"
+	session = &FlinkSession{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "flink",
+			Namespace: "test",
+		},
+		Spec: FlinkSessionSpec{
+			FlinkVersion: &version,
+			HA: FlinkHA{
+				Typ:    "kubernetes",
+				Quorum: "",
+				Path:   "",
+			},
+			BalancedSchedule: NoneScheduling,
+		},
+	}
+
+	template, err = session.GenerateCommand()
+	assert.Nil(t, err)
+	assert.Equal(t, ExpectCommand3, template)
+
+	version = "1.15"
+	session = &FlinkSession{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "flink",
+			Namespace: "test",
+		},
+		Spec: FlinkSessionSpec{
+			FlinkVersion: &version,
+			HA: FlinkHA{
+				Typ:    "kubernetes",
+				Quorum: "",
+				Path:   "",
+			},
+			BalancedSchedule: NoneScheduling,
+		},
+	}
+
+	template, err = session.GenerateCommand()
+	assert.Nil(t, err)
+	assert.Equal(t, ExpectCommand1, template)
 }
