@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"github.com/Masterminds/semver/v3"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
@@ -73,6 +74,14 @@ func (r *FlinkSession) ValidateCreate() error {
 			return errors.New("error base64 format ! :" + err.Error())
 		}
 	}
+
+	if r.Spec.FlinkVersion != nil {
+		_, err := semver.NewVersion(*r.Spec.FlinkVersion)
+		if err != nil {
+			klog.Error("创建校验失败！不是符合语义标准的版本号！", err)
+			return errors.New("error semver version format！：" + err.Error())
+		}
+	}
 	return nil
 }
 
@@ -92,6 +101,14 @@ func (r *FlinkSession) ValidateUpdate(old runtime.Object) error {
 		if _, err := base64.StdEncoding.DecodeString(r.Spec.Security.Kerberos.Base64Keytab); err != nil {
 			klog.Error("创建校验失败！不是正确的 base64！", err)
 			return errors.New("error base64 format ! :" + err.Error())
+		}
+	}
+
+	if r.Spec.FlinkVersion != nil {
+		_, err := semver.NewVersion(*r.Spec.FlinkVersion)
+		if err != nil {
+			klog.Error("创建校验失败！不是符合语义标准的版本号！", err)
+			return errors.New("error semver version format！：" + err.Error())
 		}
 	}
 	return nil
