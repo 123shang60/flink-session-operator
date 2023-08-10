@@ -121,7 +121,7 @@ func (f *FlinkSession) GenerateCommand() (string, error) {
 	if !strings.Contains(f.Spec.Config.FlinkConf, "env.java.opts") {
 		command.FieldConfig("env.java.opts", `"-XX:+UseG1GC"`)
 	}
-	command.FieldConfig("kubernetes.rest-service.exposed.type", "NodePort")
+	//command.FieldConfig("kubernetes.rest-service.exposed.type", "NodePort")
 
 	if f.Spec.ApplicationConfig != nil {
 		command.WriteString(fmt.Sprintf(`-p %d `, f.Spec.ApplicationConfig.Parallelism))
