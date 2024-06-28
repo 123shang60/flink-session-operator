@@ -2,6 +2,8 @@ package v1
 
 import (
 	"fmt"
+	"github.com/Masterminds/semver/v3"
+	"k8s.io/klog/v2"
 	"strconv"
 	"strings"
 
@@ -10,6 +12,132 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 )
+
+func flinkHAConfig(f *FlinkSession, command *pkg.Command) {
+	flinkConfigs := make([]func(f *FlinkSession, command *pkg.Command) bool, 0)
+	flinkConfigs = append(flinkConfigs, flinkHAConfigMod114)
+	flinkConfigs = append(flinkConfigs, flinkHAConfigMod116)
+	flinkConfigs = append(flinkConfigs, flinkHAConfigMod117)
+	flinkConfigs = append(flinkConfigs, flinkHAConfigModdefault)
+
+	for _, fun := range flinkConfigs {
+		if fun(f, command) {
+			return
+		}
+	}
+}
+
+func flinkHAConfigModdefault(f *FlinkSession, command *pkg.Command) bool {
+	switch f.Spec.HA.Typ {
+	case ZKHA:
+		command.FieldConfig("high-availability", "zookeeper")
+		command.FieldConfig("high-availability.zookeeper.quorum", f.Spec.HA.Quorum)
+		command.FieldConfig("high-availability.zookeeper.path.root", f.Spec.HA.Path)
+	case CONFIGMAPHA:
+		command.FieldConfig("high-availability", "org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory")
+	default:
+	}
+
+	if f.Spec.HA.Typ == ZKHA || f.Spec.HA.Typ == CONFIGMAPHA {
+		command.FieldConfig("high-availability.storageDir", fmt.Sprintf("s3://%s/%s/flink/ha/metadata", f.Spec.S3.Bucket, f.Name))
+	}
+
+	return true
+}
+
+func flinkHAConfigMod114(f *FlinkSession, command *pkg.Command) bool {
+	constraint, err := semver.NewConstraint("<= 1.15")
+	if err != nil {
+		klog.Error("it's bugs！", err)
+		return false
+	}
+
+	if f.Spec.FlinkVersion != nil {
+		v, err := semver.NewVersion(*f.Spec.FlinkVersion)
+		if err != nil {
+			klog.Error("it's bugs！", err)
+			return false
+		}
+
+		if constraint.Check(v) {
+			return flinkHAConfigModdefault(f, command)
+		}
+	}
+
+	return false
+}
+
+func flinkHAConfigMod116(f *FlinkSession, command *pkg.Command) bool {
+	constraint, err := semver.NewConstraint(">= 1.16 < 1.17")
+	if err != nil {
+		klog.Error("it's bugs！", err)
+		return false
+	}
+
+	if f.Spec.FlinkVersion != nil {
+		v, err := semver.NewVersion(*f.Spec.FlinkVersion)
+		if err != nil {
+			klog.Error("it's bugs！", err)
+			return false
+		}
+
+		if constraint.Check(v) {
+			switch f.Spec.HA.Typ {
+			case ZKHA:
+				command.FieldConfig("high-availability", "ZOOKEEPER")
+				command.FieldConfig("high-availability.zookeeper.quorum", f.Spec.HA.Quorum)
+				command.FieldConfig("high-availability.zookeeper.path.root", f.Spec.HA.Path)
+			case CONFIGMAPHA:
+				command.FieldConfig("high-availability", "KUBERNETES")
+			default:
+			}
+
+			if f.Spec.HA.Typ == ZKHA || f.Spec.HA.Typ == CONFIGMAPHA {
+				command.FieldConfig("high-availability.storageDir", fmt.Sprintf("s3://%s/%s/flink/ha/metadata", f.Spec.S3.Bucket, f.Name))
+			}
+
+			return true
+		}
+	}
+
+	return false
+}
+
+func flinkHAConfigMod117(f *FlinkSession, command *pkg.Command) bool {
+	constraint, err := semver.NewConstraint(">= 1.17")
+	if err != nil {
+		klog.Error("it's bugs！", err)
+		return false
+	}
+
+	if f.Spec.FlinkVersion != nil {
+		v, err := semver.NewVersion(*f.Spec.FlinkVersion)
+		if err != nil {
+			klog.Error("it's bugs！", err)
+			return false
+		}
+
+		if constraint.Check(v) {
+			switch f.Spec.HA.Typ {
+			case ZKHA:
+				command.FieldConfig("high-availability.type", "ZOOKEEPER")
+				command.FieldConfig("high-availability.zookeeper.quorum", f.Spec.HA.Quorum)
+				command.FieldConfig("high-availability.zookeeper.path.root", f.Spec.HA.Path)
+			case CONFIGMAPHA:
+				command.FieldConfig("high-availability.type", "KUBERNETES")
+			default:
+			}
+
+			if f.Spec.HA.Typ == ZKHA || f.Spec.HA.Typ == CONFIGMAPHA {
+				command.FieldConfig("high-availability.storageDir", fmt.Sprintf("s3://%s/%s/flink/ha/metadata", f.Spec.S3.Bucket, f.Name))
+			}
+
+			return true
+		}
+	}
+
+	return false
+}
 
 func (f *FlinkSession) GenerateCommand() (string, error) {
 	// 构建 name 以及 namespaces
@@ -76,19 +204,7 @@ func (f *FlinkSession) GenerateCommand() (string, error) {
 	command.FieldConfig("fs.overwrite-files", "true")
 
 	// ha
-	switch f.Spec.HA.Typ {
-	case ZKHA:
-		command.FieldConfig("high-availability", "zookeeper")
-		command.FieldConfig("high-availability.zookeeper.quorum", f.Spec.HA.Quorum)
-		command.FieldConfig("high-availability.zookeeper.path.root", f.Spec.HA.Path)
-	case CONFIGMAPHA:
-		command.FieldConfig("high-availability", "org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory")
-	default:
-	}
-
-	if f.Spec.HA.Typ == ZKHA || f.Spec.HA.Typ == CONFIGMAPHA {
-		command.FieldConfig("high-availability.storageDir", fmt.Sprintf("s3://%s/%s/flink/ha/metadata", f.Spec.S3.Bucket, f.Name))
-	}
+	flinkHAConfig(f, &command)
 
 	// nodeSelector
 	if f.Spec.NodeSelector != nil && len(f.Spec.NodeSelector) != 0 {
