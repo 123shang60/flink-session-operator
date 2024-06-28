@@ -10,12 +10,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.19
+          go-version: 1.22
 
       - name: Setup Zookeeper
         run: docker run -itd -h kerberos.example.com -p 88:88 -p 749:749 -p 2181:2181  123shang60/kerberos-zookeeper:3.8.0
@@ -37,14 +37,13 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags')
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Extract Version
         id: version_step
         run: |
-          echo "##[set-output name=version;]VERSION=${GITHUB_REF#$"refs/tags/v"}"
-          echo "##[set-output name=version_tag;]$GITHUB_REPOSITORY:${GITHUB_REF#$"refs/tags/v"}"
-          echo "##[set-output name=latest_tag;]$GITHUB_REPOSITORY:latest"
+          echo "version_tag=$GITHUB_REPOSITORY:${GITHUB_REF#$"refs/tags/v"}" >> $GITHUB_OUTPUT
+          echo "latest_tag=$GITHUB_REPOSITORY:latest" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -53,9 +52,9 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.19
+          go-version: 1.22
 
       - name: Go Mod 
         run: go mod tidy -v 

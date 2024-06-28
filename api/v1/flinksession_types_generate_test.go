@@ -1,10 +1,11 @@
 package v1
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 const (
@@ -69,9 +70,9 @@ spec:
 status: {}
 `
 
-	ExpectCommand1 = `$FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink -Dkubernetes.namespace=test -Dtaskmanager.numberOfTaskSlots=0 -Dstate.backend=filesystem -Ds3.endpoint=http:// -Ds3.path.style.access=true -Dstate.checkpoints.dir=s3:///flink/flink/checkpoints -Dstate.savepoints.dir=s3:///flink/flink/savepoints -Dhistoryserver.archive.fs.dir=s3:///flink/flink/completed-jobs -Djobmanager.archive.fs.dir=s3:///flink/flink/archive -Dstate.backend.incremental=true -Dfs.overwrite-files=true -Dhigh-availability=org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory -Dhigh-availability.storageDir=s3:///flink/flink/ha/metadata -Denv.java.opts="-XX:+UseG1GC" -Dkubernetes.rest-service.exposed.type=NodePort `
-	ExpectCommand2 = `$FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink -Dkubernetes.namespace=test -Dtaskmanager.numberOfTaskSlots=0 -Dstate.backend=filesystem -Ds3.endpoint=http:// -Ds3.path.style.access=true -Dstate.checkpoints.dir=s3:///flink/flink/checkpoints -Dstate.savepoints.dir=s3:///flink/flink/savepoints -Dhistoryserver.archive.fs.dir=s3:///flink/flink/completed-jobs -Djobmanager.archive.fs.dir=s3:///flink/flink/archive -Dstate.backend.incremental=true -Dfs.overwrite-files=true -Dhigh-availability=KUBERNETES -Dhigh-availability.storageDir=s3:///flink/flink/ha/metadata -Denv.java.opts="-XX:+UseG1GC" -Dkubernetes.rest-service.exposed.type=NodePort `
-	ExpectCommand3 = `$FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink -Dkubernetes.namespace=test -Dtaskmanager.numberOfTaskSlots=0 -Dstate.backend=filesystem -Ds3.endpoint=http:// -Ds3.path.style.access=true -Dstate.checkpoints.dir=s3:///flink/flink/checkpoints -Dstate.savepoints.dir=s3:///flink/flink/savepoints -Dhistoryserver.archive.fs.dir=s3:///flink/flink/completed-jobs -Djobmanager.archive.fs.dir=s3:///flink/flink/archive -Dstate.backend.incremental=true -Dfs.overwrite-files=true -Dhigh-availability.type=KUBERNETES -Dhigh-availability.storageDir=s3:///flink/flink/ha/metadata -Denv.java.opts="-XX:+UseG1GC" -Dkubernetes.rest-service.exposed.type=NodePort `
+	ExpectCommand1 = `$FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink -Dkubernetes.namespace=test -Dtaskmanager.numberOfTaskSlots=0 -Dstate.backend=filesystem -Ds3.endpoint=http:// -Ds3.path.style.access=true -Dstate.checkpoints.dir=s3:///flink/flink/checkpoints -Dstate.savepoints.dir=s3:///flink/flink/savepoints -Dhistoryserver.archive.fs.dir=s3:///flink/flink/completed-jobs -Djobmanager.archive.fs.dir=s3:///flink/flink/archive -Dstate.backend.incremental=true -Dfs.overwrite-files=true -Dhigh-availability=org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory -Dhigh-availability.storageDir=s3:///flink/flink/ha/metadata -Denv.java.opts="-XX:+UseG1GC" `
+	ExpectCommand2 = `$FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink -Dkubernetes.namespace=test -Dtaskmanager.numberOfTaskSlots=0 -Dstate.backend=filesystem -Ds3.endpoint=http:// -Ds3.path.style.access=true -Dstate.checkpoints.dir=s3:///flink/flink/checkpoints -Dstate.savepoints.dir=s3:///flink/flink/savepoints -Dhistoryserver.archive.fs.dir=s3:///flink/flink/completed-jobs -Djobmanager.archive.fs.dir=s3:///flink/flink/archive -Dstate.backend.incremental=true -Dfs.overwrite-files=true -Dhigh-availability=KUBERNETES -Dhigh-availability.storageDir=s3:///flink/flink/ha/metadata -Denv.java.opts="-XX:+UseG1GC" `
+	ExpectCommand3 = `$FLINK_HOME/bin/kubernetes-session.sh -Dkubernetes.cluster-id=flink -Dkubernetes.namespace=test -Dtaskmanager.numberOfTaskSlots=0 -Dstate.backend=filesystem -Ds3.endpoint=http:// -Ds3.path.style.access=true -Dstate.checkpoints.dir=s3:///flink/flink/checkpoints -Dstate.savepoints.dir=s3:///flink/flink/savepoints -Dhistoryserver.archive.fs.dir=s3:///flink/flink/completed-jobs -Djobmanager.archive.fs.dir=s3:///flink/flink/archive -Dstate.backend.incremental=true -Dfs.overwrite-files=true -Dhigh-availability.type=KUBERNETES -Dhigh-availability.storageDir=s3:///flink/flink/ha/metadata -Denv.java.opts="-XX:+UseG1GC" `
 )
 
 func TestBuildNodeSelector(t *testing.T) {
