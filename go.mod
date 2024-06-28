@@ -1,6 +1,6 @@
 module github.com/123shang60/flink-session-operator
 
-go 1.22
+go 1.22.1
 
 require (
 	github.com/123shang60/zk v1.0.4
